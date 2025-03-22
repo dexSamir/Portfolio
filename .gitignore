@@ -22,7 +22,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-./src/imgs/me.png
-./src/imgs/me2.jepg
-./src/imgs/resume/Samir_Habibov_CV.pdf
