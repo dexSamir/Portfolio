@@ -12,7 +12,7 @@ interface TypingEffectProps {
 
 export const TypingEffect = ({
   texts,
-  typingSpeed = 100,
+  typingSpeed = 150,
   deletingSpeed = 50,
   delayBetweenTexts = 1500,
 }: TypingEffectProps) => {

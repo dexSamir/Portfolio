@@ -34,7 +34,12 @@ export const MouseTracker = () => {
           elementUnderCursor.tagName === "SPAN" ||
           elementUnderCursor.tagName === "A" ||
           elementUnderCursor.tagName === "SVG" ||
-          elementUnderCursor.tagName === "PATH"
+          elementUnderCursor.tagName === "PATH" ||
+          elementUnderCursor.closest("a")||
+          elementUnderCursor.closest("i")||
+          elementUnderCursor.closest("button")||
+          elementUnderCursor.closest("h3") ||
+          elementUnderCursor.closest("span") 
         ) {
           setIsHovering(true);
           setHoverElement(elementUnderCursor);
