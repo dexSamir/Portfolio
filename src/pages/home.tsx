@@ -19,7 +19,6 @@ export default function HomePage() {
     "C# Developer",
   ];
 
-  // Refs for scroll animations
   const containerRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -36,7 +35,6 @@ export default function HomePage() {
           className="gradient-bg min-h-screen relative overflow-hidden"
           ref={containerRef}
         >
-          {/* Animated background particles */}
           <div className="absolute inset-0 pointer-events-none">
             {[...Array(20)].map((_, i) => (
               <motion.div
@@ -76,7 +74,7 @@ export default function HomePage() {
                       transition={{ duration: 0.3 }}
                     >
                       <img
-                        src="/placeholder.svg?height=400&width=400"
+                        src="{../imgs/me.png}"
                         alt="Samir Habibov"
                         className="w-full h-full object-cover"
                       />
