@@ -1,5 +1,4 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { Download, Award, GraduationCap, Briefcase } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -12,6 +11,7 @@ import {
 import { PageSkeleton } from "../components/loading-skeleton";
 
 export default function ResumePage() {
+  const cvUrl = "/imgs/resume/Samir_Habibov_CV.pdf";
   const skills = [
     { name: "ASP.NET Core MVC", level: 90 },
     { name: "ASP.NET Web API", level: 85 },
@@ -91,7 +91,7 @@ export default function ResumePage() {
                   className="hover-element button-like mt-4 md:mt-0 bg-primary text-black hover:bg-primary/80 transition-all duration-300"
                   size="lg"
                 >
-                  <a href="./src/imgs/resume/Samir_Habibov_CV.pdf" download>
+                  <a href={cvUrl} download>
                     <Download className="mr-2 h-5 w-5 " />
                     Download CV
                   </a>

@@ -1,14 +1,13 @@
-"use client";
-
-import { useRef } from "react";
-import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { Calendar, MapPin, Phone, Mail } from "lucide-react";
-import { PageTransition } from "../components/page-transition";
-import { SocialLinks } from "../components/social-links";
-import { TypingEffect } from "../components/typing-effect";
-import { ScrollAnimation } from "../components/scroll-animation";
-import { PageSkeleton } from "../components/loading-skeleton";
+"use client"
+import { useRef } from "react"
+import { Link } from "react-router-dom"
+import { motion, useScroll, useTransform } from "framer-motion"
+import { Calendar, MapPin, Phone, Mail } from "lucide-react"
+import { PageTransition } from "@/components/page-transition"
+import { SocialLinks } from "@/components/social-links"
+import { TypingEffect } from "@/components/typing-effect"
+import { ScrollAnimation } from "@/components/scroll-animation"
+import { PageSkeleton } from "@/components/loading-skeleton"
 
 export default function HomePage() {
   const roles = [
@@ -17,24 +16,21 @@ export default function HomePage() {
     "React Developer",
     "JavaScript Enthusiast",
     "C# Developer",
-  ];
-
-  const containerRef = useRef(null);
+  ]
+  const meImage = '/imgs/me.png';
+  const containerRef = useRef(null)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
-  });
+  })
 
-  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, 200])
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
 
   return (
     <PageSkeleton>
       <PageTransition>
-        <div
-          className="gradient-bg min-h-screen relative overflow-hidden"
-          ref={containerRef}
-        >
+        <div className="gradient-bg min-h-screen relative overflow-hidden" ref={containerRef}>
           <div className="absolute inset-0 pointer-events-none">
             {[...Array(20)].map((_, i) => (
               <motion.div
@@ -65,74 +61,58 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 <ScrollAnimation
                   direction="left"
-                  className="md:col-span-5 lg:col-span-4"
+                  className="md:col-span-5 lg:col-span-4 w-full max-w-sm mx-auto md:max-w-none"
                 >
-                  <div className="relative rounded-3xl overflow-hidden glass-card p-6 border border-primary/10 hover:border-primary/30 transition-all duration-500">
+                  <div className="relative rounded-3xl overflow-hidden glass-card p-4 sm:p-6 border border-primary/10 hover:border-primary/30 transition-all duration-500">
                     <motion.div
-                      className="aspect-square relative rounded-3xl overflow-hidden mb-6"
+                      className="aspect-square relative rounded-3xl overflow-hidden mb-4 sm:mb-6"
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <img
-                        src="./src/imgs/me.png"
-                        alt="Samir Habibov"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={meImage} alt="Samir Habibov" className="w-full h-full object-cover" />
                     </motion.div>
 
                     <SocialLinks />
 
-                    <motion.div className="mt-6 space-y-4">
+                    <motion.div className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
                       <motion.div
-                        className="flex items-center gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
+                        className="flex items-center gap-2 sm:gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
                         whileHover={{ x: 5 }}
                       >
-                        <Calendar className="text-primary" size={18} />
-                        <span className="text-sm text-gray-300">
-                          14.10.2005
-                        </span>
+                        <Calendar className="text-primary" size={16} />
+                        <span className="text-xs sm:text-sm text-gray-300">14.10.2005</span>
                       </motion.div>
 
                       <motion.div
-                        className="flex items-center gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
+                        className="flex items-center gap-2 sm:gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
                         whileHover={{ x: 5 }}
                       >
-                        <Phone className="text-primary" size={18} />
-                        <span className="text-sm text-gray-300">
-                          +994 50 622 93 28
-                        </span>
+                        <Phone className="text-primary" size={16} />
+                        <span className="text-xs sm:text-sm text-gray-300">+994 50 622 93 28</span>
                       </motion.div>
 
                       <motion.div
-                        className="flex items-center gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
+                        className="flex items-center gap-2 sm:gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
                         whileHover={{ x: 5 }}
                       >
-                        <Mail className="text-primary" size={18} />
-                        <span className="text-sm text-gray-300">
-                          hebibovsamir26@gmail.com
-                        </span>
+                        <Mail className="text-primary" size={16} />
+                        <span className="text-xs sm:text-sm text-gray-300 break-all">hebibovsamir26@gmail.com</span>
                       </motion.div>
 
                       <motion.div
-                        className="flex items-center gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
+                        className="flex items-center gap-2 sm:gap-3 hover-element p-2 rounded-lg hover:bg-black/30"
                         whileHover={{ x: 5 }}
                       >
-                        <MapPin className="text-primary" size={18} />
-                        <span className="text-sm text-gray-300">
-                          Baku, Azerbaijan
-                        </span>
+                        <MapPin className="text-primary" size={16} />
+                        <span className="text-xs sm:text-sm text-gray-300">Baku, Azerbaijan</span>
                       </motion.div>
                     </motion.div>
                   </div>
                 </ScrollAnimation>
 
-                <ScrollAnimation
-                  direction="right"
-                  delay={0.3}
-                  className="md:col-span-7 lg:col-span-8"
-                >
+                <ScrollAnimation direction="right" delay={0.3} className="md:col-span-7 lg:col-span-8">
                   <motion.h2
-                    className="text-xl mb-4"
+                    className="text-base sm:text-xl mb-2 sm:mb-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
@@ -141,7 +121,7 @@ export default function HomePage() {
                   </motion.h2>
 
                   <motion.h1
-                    className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+                    className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2 sm:mb-4 text-glow"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
@@ -150,7 +130,7 @@ export default function HomePage() {
                   </motion.h1>
 
                   <motion.h2
-                    className="text-2xl md:text-3xl mb-8"
+                    className="text-xl sm:text-2xl md:text-3xl mb-4 sm:mb-8"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.6 }}
@@ -159,43 +139,40 @@ export default function HomePage() {
                   </motion.h2>
 
                   <motion.div
-                    className="h-px w-full bg-gradient-to-r from-primary/50 to-transparent my-8"
+                    className="h-px w-full bg-gradient-to-r from-primary/50 to-transparent my-4 sm:my-8"
                     initial={{ width: 0 }}
                     animate={{ width: "100%" }}
                     transition={{ duration: 0.8, delay: 0.8 }}
                   />
 
                   <motion.p
-                    className="text-lg text-gray-300 mb-8 leading-relaxed"
+                    className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8 leading-relaxed"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 1 }}
                   >
-                    Aspiring full-stack developer with expertise in ASP.NET
-                    Core, C#, React, JavaScript, and database management (MS
-                    SQL, PostgreSQL). Passionate about building scalable web
-                    applications and continuously improving my technical skills.
-                    Actively contributing to personal projects and open-source
-                    platforms to grow as a professional in the software
-                    development field.
+                    Aspiring full-stack developer with expertise in ASP.NET Core, C#, React, JavaScript, and database
+                    management (MS SQL, PostgreSQL). Passionate about building scalable web applications and
+                    continuously improving my technical skills. Actively contributing to personal projects and
+                    open-source platforms to grow as a professional in the software development field.
                   </motion.p>
 
                   <motion.div
-                    className="flex flex-wrap gap-4"
+                    className="flex flex-wrap gap-3 sm:gap-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 1.2 }}
                   >
                     <Link
                       to="/projects"
-                      className="hover-element button-like bg-primary text-black px-8 py-4 rounded-full font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+                      className="hover-element button-like bg-primary text-black px-4 sm:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)]"
                     >
                       View Projects
                     </Link>
 
                     <Link
                       to="/resume"
-                      className="hover-element button-like border border-primary text-primary px-8 py-4 rounded-full font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]"
+                      className="hover-element button-like border border-primary text-primary px-4 sm:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]"
                     >
                       Download CV
                     </Link>
@@ -207,5 +184,6 @@ export default function HomePage() {
         </div>
       </PageTransition>
     </PageSkeleton>
-  );
+  )
 }
+
