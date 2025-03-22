@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, type ReactNode } from "react"
-import { motion, useInView, useAnimation, type Variant } from "framer-motion"
+import { motion, useInView, useAnimation } from "framer-motion"
 
 type FadeDirections = "up" | "down" | "left" | "right" | "none"
 
@@ -15,22 +15,19 @@ interface ScrollAnimationProps {
   once?: boolean
 }
 
-const variants = {
-  hidden: (direction: FadeDirections): Variant => {
-    switch (direction) {
-      case "up":
-        return { opacity: 0, y: 50 }
-      case "down":
-        return { opacity: 0, y: -50 }
-      case "left":
-        return { opacity: 0, x: 50 }
-      case "right":
-        return { opacity: 0, x: -50 }
-      default:
-        return { opacity: 0 }
-    }
-  },
-  visible: { opacity: 1, y: 0, x: 0 },
+const getVariants = (direction: FadeDirections) => {
+  return {
+    hidden: {
+      opacity: 0,
+      y: direction === "up" ? 50 : direction === "down" ? -50 : 0,
+      x: direction === "left" ? 50 : direction === "right" ? -50 : 0,
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      x: 0 
+    },
+  }
 }
 
 export const ScrollAnimation = ({
@@ -44,7 +41,7 @@ export const ScrollAnimation = ({
 }: ScrollAnimationProps) => {
   const controls = useAnimation()
   const ref = useRef(null)
-  const inView = useInView(ref, { threshold, once })
+  const inView = useInView(ref, { amount: threshold, once })
 
   useEffect(() => {
     if (inView) {
@@ -59,8 +56,7 @@ export const ScrollAnimation = ({
       ref={ref}
       initial="hidden"
       animate={controls}
-      variants={variants}
-      custom={direction}
+      variants={getVariants(direction)}
       transition={{ duration, delay, ease: [0.25, 0.1, 0.25, 1] }}
       className={className}
     >
@@ -128,4 +124,3 @@ export const StaggerItem = ({
     </motion.div>
   )
 }
-

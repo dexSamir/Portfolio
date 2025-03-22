@@ -5,7 +5,7 @@ export const MouseTracker = () => {
   const [dotPosition, setDotPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [hoverElement, setHoverElement] = useState<HTMLElement | null>(null);
+  const [, setHoverElement] = useState<HTMLElement | null>(null);
   const dotRef = useRef<HTMLDivElement>(null);
 
   const lerp = (start: number, end: number, t: number) => {
@@ -35,11 +35,11 @@ export const MouseTracker = () => {
           elementUnderCursor.tagName === "A" ||
           elementUnderCursor.tagName === "SVG" ||
           elementUnderCursor.tagName === "PATH" ||
-          elementUnderCursor.closest("a")||
-          elementUnderCursor.closest("i")||
-          elementUnderCursor.closest("button")||
+          elementUnderCursor.closest("a") ||
+          elementUnderCursor.closest("i") ||
+          elementUnderCursor.closest("button") ||
           elementUnderCursor.closest("h3") ||
-          elementUnderCursor.closest("span") 
+          elementUnderCursor.closest("span")
         ) {
           setIsHovering(true);
           setHoverElement(elementUnderCursor);
