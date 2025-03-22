@@ -74,7 +74,7 @@ export default function HomePage() {
                       transition={{ duration: 0.3 }}
                     >
                       <img
-                        src="{../imgs/me.png}"
+                        src="./src/imgs/me.png"
                         alt="Samir Habibov"
                         className="w-full h-full object-cover"
                       />
@@ -89,7 +89,7 @@ export default function HomePage() {
                       >
                         <Calendar className="text-primary" size={18} />
                         <span className="text-sm text-gray-300">
-                          19.03.1988
+                          14.10.2005
                         </span>
                       </motion.div>
 
@@ -141,7 +141,7 @@ export default function HomePage() {
                   </motion.h2>
 
                   <motion.h1
-                    className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-glow"
+                    className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}

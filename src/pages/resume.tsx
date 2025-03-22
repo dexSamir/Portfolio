@@ -1,12 +1,15 @@
-"use client"
+"use client";
 
-import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Download, Award, GraduationCap, Briefcase } from "lucide-react"
-import { Button } from "../components/ui/button"
-import { PageTransition } from "../components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "../components/scroll-animation"
-import { PageSkeleton } from "../components/loading-skeleton"
+import { motion } from "framer-motion";
+import { Download, Award, GraduationCap, Briefcase } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { PageTransition } from "../components/page-transition";
+import {
+  ScrollAnimation,
+  StaggerContainer,
+  StaggerItem,
+} from "../components/scroll-animation";
+import { PageSkeleton } from "../components/loading-skeleton";
 
 export default function ResumePage() {
   const skills = [
@@ -20,7 +23,7 @@ export default function ResumePage() {
     { name: "SQL (MS SQL, PostgreSQL)", level: 85 },
     { name: "Git/GitHub", level: 80 },
     { name: "Tailwind CSS", level: 75 },
-  ]
+  ];
 
   const education = [
     {
@@ -41,7 +44,7 @@ export default function ResumePage() {
       period: "09/2024 - 01/2025",
       location: "Baku, Azerbaijan",
     },
-  ]
+  ];
 
   const experience = [
     {
@@ -57,7 +60,7 @@ export default function ResumePage() {
       description:
         "Actively participating in university events, contributing to organization and coordination processes.",
     },
-  ]
+  ];
 
   const awards = [
     'NP-3 (Newbie Programmers - "Yeni Başlayan Proqramçılar") · 1st place (champion)',
@@ -65,7 +68,7 @@ export default function ResumePage() {
     '"Hand in Hand for Karabakh" ASAN Innovative Solutions Hackathon (08 - 09.11.2023)',
     '"GeoPark Innovate" Hackathon (05 - 06.10.2024)',
     '"Code8 2024" Hackathon (06.12.2024)',
-  ]
+  ];
 
   return (
     <PageSkeleton>
@@ -75,19 +78,23 @@ export default function ResumePage() {
             <ScrollAnimation>
               <div className="flex flex-col md:flex-row justify-between items-start mb-12">
                 <div>
-                  <h1 className="text-4xl md:text-6xl font-bold mb-3 text-glow">My Resume</h1>
+                  <h1 className="text-4xl md:text-6xl font-bold mb-3">
+                    My Resume
+                  </h1>
                   <div className="h-1 w-20 bg-primary mb-4"></div>
-                  <p className="text-xl text-gray-300">Professional background and skills</p>
+                  <p className="text-xl text-gray-300">
+                    Professional background and skills
+                  </p>
                 </div>
 
                 <Button
                   className="hover-element button-like mt-4 md:mt-0 bg-primary text-black hover:bg-primary/80 transition-all duration-300"
                   size="lg"
                 >
-                  <Link to="/resume.pdf" download>
-                    <Download className="mr-2 h-5 w-5" />
+                  <a href="./src/imgs/resume/Samir_Habibov_CV.pdf" download>
+                    <Download className="mr-2 h-5 w-5 " />
                     Download CV
-                  </Link>
+                  </a>
                 </Button>
               </div>
             </ScrollAnimation>
@@ -108,14 +115,19 @@ export default function ResumePage() {
                         <div>
                           <div className="flex justify-between mb-2">
                             <span className="font-medium">{skill.name}</span>
-                            <span className="text-primary font-semibold">{skill.level}%</span>
+                            <span className="text-primary font-semibold">
+                              {skill.level}%
+                            </span>
                           </div>
                           <div className="w-full bg-gray-700/50 rounded-full h-3 backdrop-blur-sm">
                             <motion.div
                               className="bg-gradient-to-r from-primary/80 to-primary h-3 rounded-full relative overflow-hidden"
                               initial={{ width: 0 }}
                               whileInView={{ width: `${skill.level}%` }}
-                              transition={{ duration: 1, delay: 0.2 + index * 0.1 }}
+                              transition={{
+                                duration: 1,
+                                delay: 0.2 + index * 0.1,
+                              }}
                               viewport={{ once: true }}
                             >
                               <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)] animate-[shimmer_1.5s_infinite]"></div>
@@ -154,7 +166,9 @@ export default function ResumePage() {
                       <div className="mb-6">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">Azerbaijani</span>
-                          <span className="text-primary font-medium">Native</span>
+                          <span className="text-primary font-medium">
+                            Native
+                          </span>
                         </div>
                         <div className="w-full bg-gray-700/50 rounded-full h-3">
                           <motion.div
@@ -172,7 +186,9 @@ export default function ResumePage() {
                       <div className="mb-6">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">Turkish</span>
-                          <span className="text-primary font-medium">Fluent</span>
+                          <span className="text-primary font-medium">
+                            Fluent
+                          </span>
                         </div>
                         <div className="w-full bg-gray-700/50 rounded-full h-3">
                           <motion.div
@@ -190,7 +206,9 @@ export default function ResumePage() {
                       <div className="mb-6">
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">English</span>
-                          <span className="text-primary font-medium">B1 (Intermediate)</span>
+                          <span className="text-primary font-medium">
+                            B1 (Intermediate)
+                          </span>
                         </div>
                         <div className="w-full bg-gray-700/50 rounded-full h-3">
                           <motion.div
@@ -208,7 +226,9 @@ export default function ResumePage() {
                       <div>
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-medium">Russian</span>
-                          <span className="text-primary font-medium">Intermediate</span>
+                          <span className="text-primary font-medium">
+                            Intermediate
+                          </span>
                         </div>
                         <div className="w-full bg-gray-700/50 rounded-full h-3">
                           <motion.div
@@ -225,7 +245,11 @@ export default function ResumePage() {
                 </div>
               </ScrollAnimation>
 
-              <ScrollAnimation direction="right" delay={0.3} className="lg:col-span-2">
+              <ScrollAnimation
+                direction="right"
+                delay={0.3}
+                className="lg:col-span-2"
+              >
                 <div className="glass-card rounded-xl p-8 mb-8 border border-primary/10 hover:border-primary/30 transition-all duration-300">
                   <h2 className="text-2xl font-bold mb-8 flex items-center">
                     <span className="bg-primary/20 p-2 rounded-lg mr-3">
@@ -238,16 +262,22 @@ export default function ResumePage() {
                     {education.map((edu, index) => (
                       <StaggerItem key={index}>
                         <div className="relative pl-8 pb-8 hover-element">
-                          {/* Timeline dot and line */}
                           <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
                           <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,0,0.5)]"></div>
 
-                          {/* Content */}
-                          <h3 className="text-2xl font-semibold mb-1">{edu.institution}</h3>
-                          <p className="text-primary font-medium text-lg mb-2">{edu.degree}</p>
+                          <h3 className="text-2xl font-semibold mb-1">
+                            {edu.institution}
+                          </h3>
+                          <p className="text-primary font-medium text-lg mb-2">
+                            {edu.degree}
+                          </p>
                           <div className="flex flex-wrap justify-between text-sm text-gray-400">
-                            <span className="bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">{edu.period}</span>
-                            <span className="bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">{edu.location}</span>
+                            <span className="bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                              {edu.period}
+                            </span>
+                            <span className="bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+                              {edu.location}
+                            </span>
                           </div>
                         </div>
                       </StaggerItem>
@@ -267,13 +297,15 @@ export default function ResumePage() {
                     {experience.map((exp, index) => (
                       <StaggerItem key={index}>
                         <div className="relative pl-8 pb-8 hover-element">
-                          {/* Timeline dot and line */}
                           <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
                           <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,0,0.5)]"></div>
 
-                          {/* Content */}
-                          <h3 className="text-2xl font-semibold mb-1">{exp.position}</h3>
-                          <p className="text-primary font-medium text-lg mb-2">{exp.company}</p>
+                          <h3 className="text-2xl font-semibold mb-1">
+                            {exp.position}
+                          </h3>
+                          <p className="text-primary font-medium text-lg mb-2">
+                            {exp.company}
+                          </p>
                           <p className="bg-black/30 inline-block px-3 py-1 rounded-full backdrop-blur-sm text-sm text-gray-400 mb-3">
                             {exp.period}
                           </p>
@@ -326,6 +358,5 @@ export default function ResumePage() {
         </div>
       </PageTransition>
     </PageSkeleton>
-  )
+  );
 }
-

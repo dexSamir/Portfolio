@@ -68,7 +68,7 @@ export default function TestimonialsPage() {
         <div className="gradient-bg min-h-screen">
           <div className="container mx-auto px-4 pt-24 pb-16">
             <ScrollAnimation>
-              <h1 className="text-4xl md:text-6xl font-bold mb-3 text-glow">Client Testimonials</h1>
+              <h1 className="text-4xl md:text-6xl font-bold mb-3">Client Testimonials</h1>
               <div className="h-1 w-20 bg-primary mb-4"></div>
               <p className="text-xl text-gray-300 mb-12">What my clients have to say about working with me</p>
             </ScrollAnimation>
@@ -78,7 +78,6 @@ export default function TestimonialsPage() {
                 <StaggerItem key={index}>
                   <Card className="hover-element bg-black/50 backdrop-blur-sm border-primary/20 overflow-hidden transition-all duration-500 hover:scale-105 hover:border-primary h-full">
                     <CardContent className="p-6 relative">
-                      {/* Decorative quote symbol in background */}
                       <div className="absolute top-3 right-3 opacity-5 text-8xl font-serif">"</div>
 
                       <Quote className="h-10 w-10 text-primary/70 mb-4" />

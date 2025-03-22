@@ -13,7 +13,7 @@ export default function ContactPage() {
         <div className="gradient-bg min-h-screen">
           <div className="container mx-auto px-4 pt-24 pb-16">
             <ScrollAnimation>
-              <h1 className="text-4xl md:text-6xl font-bold mb-3 text-glow">Contact Me</h1>
+              <h1 className="text-4xl md:text-6xl font-bold mb-3">Contact Me</h1>
               <div className="h-1 w-20 bg-primary mb-4"></div>
               <p className="text-xl text-gray-300 mb-12">Get in touch for collaborations or inquiries</p>
             </ScrollAnimation>
