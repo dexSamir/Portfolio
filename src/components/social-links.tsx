@@ -6,7 +6,7 @@ export const SocialLinks = () => {
   const socialLinks = [
     { name: "Facebook", icon: <Facebook size={30} />, url: "https://www.facebook.com/people/Samir-H%C9%99bibov/pfbid0Z8mVUAZZBiKgq3rPYkHFgahexr7VKGEuFUMu6LPSaEAQPEWbXeK7aVZALAii44jzl/" },
     { name: "X", icon: <XIcon size={30} />, url: "https://x.com/samir_khabib" },
-    { name: "LinkedIn", icon: <Linkedin size={30} />, url: "https://github.com/dexSamir" },
+    { name: "LinkedIn", icon: <Linkedin size={30} />, url: "www.linkedin.com/in/samir-həbibov-a63518285" },
     { name: "GitHub", icon: <Github size={30} />, url: "https://github.com/dexSamir" },
   ]
 
