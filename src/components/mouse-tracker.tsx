@@ -1,27 +1,33 @@
-import { useEffect, useState, useRef } from "react";
+"use client"
+
+import { useEffect, useState, useRef } from "react"
+import { useTheme } from "./theme-provider"
+import { useMediaQuery } from "../hooks/use-media-query"
 
 export const MouseTracker = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dotPosition, setDotPosition] = useState({ x: 0, y: 0 });
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const [, setHoverElement] = useState<HTMLElement | null>(null);
-  const dotRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [dotPosition, setDotPosition] = useState({ x: 0, y: 0 })
+  const [isVisible, setIsVisible] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
+  const [, setHoverElement] = useState<HTMLElement | null>(null)
+  const dotRef = useRef<HTMLDivElement>(null)
+  const { theme } = useTheme()
+
+  const isDesktop = useMediaQuery("(min-width: 1024px)")
 
   const lerp = (start: number, end: number, t: number) => {
-    return start * (1 - t) + end * t;
-  };
+    return start * (1 - t) + end * t
+  }
 
   useEffect(() => {
-    let animationFrameId: number;
+    if (!isDesktop) return
+
+    let animationFrameId: number
 
     const mouseMoveHandler = (event: MouseEvent) => {
-      setPosition({ x: event.clientX, y: event.clientY });
+      setPosition({ x: event.clientX, y: event.clientY })
 
-      const elementUnderCursor = document.elementFromPoint(
-        event.clientX,
-        event.clientY
-      ) as HTMLElement;
+      const elementUnderCursor = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement
 
       if (elementUnderCursor) {
         if (
@@ -41,43 +47,43 @@ export const MouseTracker = () => {
           elementUnderCursor.closest("h3") ||
           elementUnderCursor.closest("span")
         ) {
-          setIsHovering(true);
-          setHoverElement(elementUnderCursor);
+          setIsHovering(true)
+          setHoverElement(elementUnderCursor)
         } else {
-          setIsHovering(false);
-          setHoverElement(null);
+          setIsHovering(false)
+          setHoverElement(null)
         }
       }
-    };
+    }
 
-    const mouseEnterHandler = () => setIsVisible(true);
-    const mouseLeaveHandler = () => setIsVisible(false);
+    const mouseEnterHandler = () => setIsVisible(true)
+    const mouseLeaveHandler = () => setIsVisible(false)
 
-    document.addEventListener("mousemove", mouseMoveHandler);
-    document.addEventListener("mouseenter", mouseEnterHandler);
-    document.addEventListener("mouseleave", mouseLeaveHandler);
+    document.addEventListener("mousemove", mouseMoveHandler)
+    document.addEventListener("mouseenter", mouseEnterHandler)
+    document.addEventListener("mouseleave", mouseLeaveHandler)
 
     const animate = () => {
       setDotPosition((prev) => ({
         x: lerp(prev.x, position.x, 0.05),
         y: lerp(prev.y, position.y, 0.05),
-      }));
-      animationFrameId = requestAnimationFrame(animate);
-    };
+      }))
+      animationFrameId = requestAnimationFrame(animate)
+    }
 
-    animate();
+    animate()
 
     return () => {
-      document.removeEventListener("mousemove", mouseMoveHandler);
-      document.removeEventListener("mouseenter", mouseEnterHandler);
-      document.removeEventListener("mouseleave", mouseLeaveHandler);
+      document.removeEventListener("mousemove", mouseMoveHandler)
+      document.removeEventListener("mouseenter", mouseEnterHandler)
+      document.removeEventListener("mouseleave", mouseLeaveHandler)
       if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+        cancelAnimationFrame(animationFrameId)
       }
-    };
-  }, [position]);
+    }
+  }, [position, isDesktop])
 
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || !isDesktop) return null
 
   return (
     <div
@@ -89,12 +95,13 @@ export const MouseTracker = () => {
         opacity: isVisible ? 1 : 0,
         width: isHovering ? "60px" : "20px",
         height: isHovering ? "60px" : "20px",
-        backgroundColor: "#fff",
+        backgroundColor: theme === "dark" ? "#fff" : "#000",
         transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
         transition:
-          "transform 1s ease-out, opacity .5s ease, width .5s ease-out, height .5s ease-out",
+          "transform 1s ease-out, opacity .5s ease, width .5s ease-out, height .5s ease-out, background-color 0.5s ease",
         borderRadius: "50%",
       }}
     />
-  );
-};
+  )
+}
+

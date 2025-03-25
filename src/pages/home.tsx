@@ -17,7 +17,9 @@ export default function HomePage() {
     "JavaScript Enthusiast",
     "C# Developer",
   ]
+  
   const meImage = '/imgs/me.png';
+
   const containerRef = useRef(null)
   const { scrollYProgress } = useScroll({
     target: containerRef,

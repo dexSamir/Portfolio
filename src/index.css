@@ -56,6 +56,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.5s ease, color 0.5s ease;
   }
 }
 
@@ -72,6 +73,14 @@
 
 .button-like {
   cursor: none;
+}
+
+/* Masaüstü olmayan cihazlarda normal imleç kullanımı için */
+@media (max-width: 1023px) {
+  .hover-element,
+  .button-like {
+    cursor: pointer !important;
+  }
 }
 
 .page-transition-enter {
@@ -99,6 +108,11 @@
 .gradient-bg {
   background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 100, 0, 0.2));
   position: relative;
+  transition: background 0.5s ease;
+}
+
+.light .gradient-bg {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(220, 255, 220, 0.7));
 }
 
 .gradient-bg::before {
@@ -115,6 +129,10 @@
 
 .text-glow {
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.light .text-glow {
+  text-shadow: 0 0 10px rgba(0, 150, 0, 0.3);
 }
 
 .social-icon {
@@ -154,6 +172,10 @@
   border-radius: 4px;
 }
 
+.light .skeleton {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.05) 75%);
+}
+
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -167,5 +189,17 @@
   background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.5s ease, border-color 0.5s ease;
+}
+
+.light .glass-card {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
 
