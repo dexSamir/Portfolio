@@ -76,7 +76,7 @@ export const HomePageSkeleton = () => {
               <Skeleton height="300px" width="100%" className="rounded-3xl mb-6" />
 
               <div className="flex space-x-2 mb-6">
-                {[...Array(5)].map((_, i) => (
+                {[...Array(4)].map((_, i) => (
                   <Skeleton key={i} height="40px" width="40px" borderRadius="9999px" />
                 ))}
               </div>

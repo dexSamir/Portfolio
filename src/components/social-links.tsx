@@ -1,11 +1,11 @@
 import { motion } from "framer-motion"
-import { Facebook, Twitter, Instagram, Linkedin, Github } from "lucide-react"
+import { Facebook, Linkedin, Github } from "lucide-react"
+import { XIcon } from "./icons/x-icon"
 
 export const SocialLinks = () => {
   const socialLinks = [
-    { name: "Facebook", icon: <Facebook size={30} />, url: "https://facebook.com" },
-    { name: "Twitter", icon: <Twitter size={30} />, url: "https://twitter.com" },
-    { name: "Instagram", icon: <Instagram size={30} />, url: "https://instagram.com" },
+    { name: "Facebook", icon: <Facebook size={30} />, url: "https://www.facebook.com/people/Samir-H%C9%99bibov/pfbid0Z8mVUAZZBiKgq3rPYkHFgahexr7VKGEuFUMu6LPSaEAQPEWbXeK7aVZALAii44jzl/" },
+    { name: "X", icon: <XIcon size={30} />, url: "https://x.com/samir_khabib" },
     { name: "LinkedIn", icon: <Linkedin size={30} />, url: "https://github.com/dexSamir" },
     { name: "GitHub", icon: <Github size={30} />, url: "https://github.com/dexSamir" },
   ]
