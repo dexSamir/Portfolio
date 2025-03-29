@@ -7,6 +7,24 @@ import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Lock, User, Eye, EyeOff } from "lucide-react"
 
+let adminConfig: { username: string; password: string } = { username: "", password: "" }
+
+try {
+  const { config } = await import("../config.local")
+  adminConfig = config.admin
+} catch (error) {
+  console.error("Local config not found, trying environment variables")
+
+  if (import.meta.env.VITE_ADMIN_USERNAME && import.meta.env.VITE_ADMIN_PASSWORD) {
+    adminConfig = {
+      username: import.meta.env.VITE_ADMIN_USERNAME,
+      password: import.meta.env.VITE_ADMIN_PASSWORD,
+    }
+  } else {
+    console.error("No admin credentials found. Please set up config.local.ts or environment variables." + error)
+  }
+}
+
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     username: "",
@@ -30,24 +48,21 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const ADMIN_USERNAME = import.meta.env.VITE_ADMIN_USERNAME
-      const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD
+      if (adminConfig.username && adminConfig.password) {
+        if (credentials.username === adminConfig.username && credentials.password === adminConfig.password) {
+          localStorage.setItem("auth_token", generateSecureToken())
+          localStorage.setItem("user", JSON.stringify({ name: "Admin", role: "admin" }))
 
-      if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
-        console.error("Admin credentials are not set in environment variables")
-        setError("Authentication system is not properly configured. Please contact the administrator.")
-        setLoading(false)
+          navigate("/admin")
+          return
+        }
+      } else {
+        setError("Admin credentials are not configured. Please contact the administrator.")
+        console.error("Admin credentials are not configured")
         return
       }
 
-      if (credentials.username === ADMIN_USERNAME && credentials.password === ADMIN_PASSWORD) {
-        localStorage.setItem("auth_token", generateSecureToken())
-        localStorage.setItem("user", JSON.stringify({ name: "Admin", role: "admin" }))
-
-        navigate("/admin")
-      } else {
-        setError("Invalid username or password")
-      }
+      setError("Invalid username or password")
     } catch (err) {
       setError("An error occurred. Please try again.")
       console.error(err)
