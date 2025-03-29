@@ -9,15 +9,20 @@ import ProjectsPage from "./pages/projects"
 import ResumePage from "./pages/resume"
 import ContactPage from "./pages/contact"
 import TestimonialsPage from "./pages/testimonials"
+import LoginPage from "./pages/login"
+import AdminDashboard from "./pages/admin"
+import AdminCreatePage from "./pages/admin/create"
 
 function App() {
   const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith("/admin")
+  const isLoginRoute = location.pathname === "/login"
 
   return (
     <>
-      <MouseTracker />
-      <Navigation />
-      <main className="relative z-10">
+      {!isAdminRoute && !isLoginRoute && <MouseTracker />}
+      {!isAdminRoute && !isLoginRoute && <Navigation />}
+      <main className={`relative ${!isAdminRoute && !isLoginRoute ? "z-10" : ""}`}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<HomePage />} />
@@ -25,6 +30,9 @@ function App() {
             <Route path="/resume" element={<ResumePage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/testimonials" element={<TestimonialsPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/create" element={<AdminCreatePage />} />
           </Routes>
         </AnimatePresence>
       </main>

@@ -1,133 +1,117 @@
-import { ExternalLink, Github } from "lucide-react"
-import { Button } from "../components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card"
-import { PageTransition } from "../components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "../components/scroll-animation"
-import { PageSkeleton } from "../components/loading-skeleton"
+"use client"
+
+import { useState, useEffect } from "react"
+import { Github, ExternalLink, FolderGit2 } from "lucide-react"
+import { PageTransition } from "@/components/page-transition"
+import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
+import { PageSkeleton } from "@/components/loading-skeleton"
+
+interface Project {
+  id: string
+  title: string
+  description: string
+  image?: string
+  technologies: string[]
+  githubUrl?: string
+  liveUrl?: string
+}
 
 export default function ProjectsPage() {
-  const projects = [
-    {
-      title: "E-Commerce Platform",
-      description: "A full-stack e-commerce platform built with ASP.NET Core and React.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["ASP.NET Core", "React", "MS SQL", "Redux"],
-      liveUrl: "#",
-      githubUrl: "#",
-    },
-    {
-      title: "Task Management App",
-      description: "A task management application with real-time updates and collaboration features.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["React", "Node.js", "PostgreSQL", "Socket.io"],
-      liveUrl: "#",
-      githubUrl: "#",
-    },
-    {
-      title: "Portfolio Website",
-      description: "A responsive portfolio website with animations and interactive elements.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Next.js", "Tailwind CSS", "Framer Motion"],
-      liveUrl: "#",
-      githubUrl: "#",
-    },
-    {
-      title: "Weather Application",
-      description: "A weather application that provides real-time weather data and forecasts.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["React", "OpenWeather API", "Tailwind CSS"],
-      liveUrl: "#",
-      githubUrl: "#",
-    },
-    {
-      title: "Blog Platform",
-      description: "A modern blog platform with advanced editing and commenting features.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["Next.js", "MongoDB", "Tailwind CSS"],
-      liveUrl: "#",
-      githubUrl: "#",
-    },
-    {
-      title: "Restaurant Booking System",
-      description: "A comprehensive booking system for restaurants with table management.",
-      image: "/placeholder.svg?height=300&width=500",
-      tags: ["ASP.NET Core", "SQL Server", "React"],
-      liveUrl: "#",
-      githubUrl: "#",
-    },
-  ]
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setProjects([])
+      setLoading(false)
+    }, 1000)
+  }, [])
 
   return (
     <PageSkeleton>
       <PageTransition>
-        <div className="gradient-bg min-h-screen">
-          <div className="container mx-auto px-4 pt-24 pb-16">
-            <ScrollAnimation>
-              <h1 className="text-4xl md:text-6xl font-bold mb-3">My Projects</h1>
-              <div className="h-1 w-20 bg-primary mb-4"></div>
-              <p className="text-xl text-gray-300 mb-12">A showcase of my recent work and projects</p>
+        <div className="gradient-bg min-h-screen pt-24 pb-16 px-4">
+          <div className="container mx-auto">
+            <ScrollAnimation direction="up">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">My Projects</h1>
+              <div className="h-1 w-20 bg-primary mb-8"></div>
+              <p className="text-xl text-gray-300 mb-12 max-w-3xl">
+                Here are some of the projects I've worked on. Each project represents my skills and experience in
+                different technologies.
+              </p>
             </ScrollAnimation>
 
-            <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {projects.map((project, index) => (
-                <StaggerItem key={index}>
-                  <Card className="hover-element bg-black/50 backdrop-blur-sm border-primary/20 overflow-hidden transition-all duration-500 h-full">
-                    <div className="relative h-48 w-full overflow-hidden">
-                      <img
-                        src={project.image || "/placeholder.svg"}
-                        alt={project.title}
-                        className="w-full h-full object-cover transition-all duration-1000 hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-70"></div>
-                    </div>
-
-                    <CardHeader>
-                      <CardTitle className="text-xl">{project.title}</CardTitle>
-                      <CardDescription className="text-gray-400">{project.description}</CardDescription>
-                    </CardHeader>
-
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {project.tags.map((tag, tagIndex) => (
-                          <span
-                            key={tagIndex}
-                            className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full transition-all duration-300 hover:bg-primary/40"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : projects.length > 0 ? (
+              <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {projects.map((project) => (
+                  <StaggerItem key={project.id}>
+                    <div className="glass-card rounded-xl overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+                      {project.image && (
+                        <div className="h-48 overflow-hidden">
+                          <img
+                            src={project.image || "/placeholder.svg"}
+                            alt={project.title}
+                            className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                          />
+                        </div>
+                      )}
+                      <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-4">
+                            <h3 className="text-xl font-semibold">{project.title}</h3>
+                            <FolderGit2 className="text-primary" size={24} />
+                          </div>
+                          <p className="text-gray-300 mb-6">{project.description}</p>
+                          <div className="flex flex-wrap gap-2 mb-6">
+                            {project.technologies.map((tech) => (
+                              <span key={tech} className="text-xs px-3 py-1 rounded-full bg-primary/20 text-primary">
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex justify-between mt-auto">
+                          {project.githubUrl && (
+                            <a
+                              href={project.githubUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover-element flex items-center gap-2 text-sm text-gray-300 hover:text-primary transition-colors"
+                            >
+                              <Github size={18} />
+                              Code
+                            </a>
+                          )}
+                          {project.liveUrl && (
+                            <a
+                              href={project.liveUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover-element flex items-center gap-2 text-sm text-gray-300 hover:text-primary transition-colors"
+                            >
+                              <ExternalLink size={18} />
+                              Live Demo
+                            </a>
+                          )}
+                        </div>
                       </div>
-                    </CardContent>
-
-                    <CardFooter className="flex justify-between">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="hover-element border-primary/50 text-primary hover:bg-primary/20 transition-all duration-300"
-                        asChild
-                      >
-                        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer">
-                          <Github className="mr-2 h-4 w-4" />
-                          Code
-                        </a>
-                      </Button>
-
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="hover-element bg-primary text-black hover:bg-primary/80 transition-all duration-300"
-                        asChild
-                      >
-                        <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="mr-2 h-4 w-4" />
-                          Live Demo
-                        </a>
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20">
+                <FolderGit2 className="text-primary mb-4" size={64} />
+                <h2 className="text-2xl font-semibold mb-2">No projects yet</h2>
+                <p className="text-gray-300 text-center max-w-md">
+                  I'm currently working on some exciting projects. Check back soon to see what I've been building!
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </PageTransition>

@@ -1,123 +1,99 @@
-import { Quote, Star } from "lucide-react"
-import { Card, CardContent } from "../components/ui/card"
-import { PageTransition } from "../components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "../components/scroll-animation"
-import { PageSkeleton } from "../components/loading-skeleton"
+"use client"
+
+import { useState, useEffect } from "react"
+import { MessageSquareQuote, Star } from "lucide-react"
+import { PageTransition } from "@/components/page-transition"
+import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
+import { PageSkeleton } from "@/components/loading-skeleton"
+
+interface Testimonial {
+  id: string
+  name: string
+  position: string
+  company: string
+  avatar?: string
+  content: string
+  rating: number
+}
 
 export default function TestimonialsPage() {
-  const testimonials = [
-    {
-      name: "Alex Johnson",
-      position: "Project Manager",
-      company: "TechCorp",
-      image: "/placeholder.svg?height=100&width=100",
-      testimonial:
-        "Samir is an exceptional developer who consistently delivers high-quality work. His attention to detail and problem-solving skills are impressive.",
-      rating: 5,
-    },
-    {
-      name: "Maria Garcia",
-      position: "UI/UX Designer",
-      company: "DesignHub",
-      image: "/placeholder.svg?height=100&width=100",
-      testimonial:
-        "Working with Samir was a pleasure. He transformed my designs into flawless code and added thoughtful interactions that enhanced the user experience.",
-      rating: 5,
-    },
-    {
-      name: "David Kim",
-      position: "CTO",
-      company: "StartupX",
-      image: "/placeholder.svg?height=100&width=100",
-      testimonial:
-        "Samir's technical expertise and ability to quickly learn new technologies made him an invaluable asset to our team. He consistently exceeded our expectations.",
-      rating: 4,
-    },
-    {
-      name: "Sarah Williams",
-      position: "Product Owner",
-      company: "InnovateTech",
-      image: "/placeholder.svg?height=100&width=100",
-      testimonial:
-        "Samir not only writes excellent code but also understands business requirements deeply. He suggests improvements that add real value to the product.",
-      rating: 5,
-    },
-    {
-      name: "Michael Brown",
-      position: "Senior Developer",
-      company: "CodeMasters",
-      image: "/placeholder.svg?height=100&width=100",
-      testimonial:
-        "As a fellow developer, I'm impressed by Samir's clean code and thoughtful architecture decisions. He's a great collaborator and elevates the entire team.",
-      rating: 4,
-    },
-    {
-      name: "Emily Chen",
-      position: "Startup Founder",
-      company: "WebSolutions",
-      image: "/placeholder.svg?height=100&width=100",
-      testimonial:
-        "Samir helped bring my startup idea to life with his technical skills. He was responsive, professional, and delivered exactly what we needed on time.",
-      rating: 5,
-    },
-  ]
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setTestimonials([])
+      setLoading(false)
+    }, 1000)
+  }, [])
 
   return (
     <PageSkeleton>
       <PageTransition>
-        <div className="gradient-bg min-h-screen">
-          <div className="container mx-auto px-4 pt-24 pb-16">
-            <ScrollAnimation>
-              <h1 className="text-4xl md:text-6xl font-bold mb-3">Client Testimonials</h1>
-              <div className="h-1 w-20 bg-primary mb-4"></div>
-              <p className="text-xl text-gray-300 mb-12">What my clients have to say about working with me</p>
+        <div className="gradient-bg min-h-screen pt-24 pb-16 px-4">
+          <div className="container mx-auto">
+            <ScrollAnimation direction="up">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Testimonials</h1>
+              <div className="h-1 w-20 bg-primary mb-8"></div>
+              <p className="text-xl text-gray-300 mb-12 max-w-3xl">
+                Here's what people are saying about my work and collaboration experience.
+              </p>
             </ScrollAnimation>
 
-            <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {testimonials.map((testimonial, index) => (
-                <StaggerItem key={index}>
-                  <Card className="hover-element bg-black/50 backdrop-blur-sm border-primary/20 overflow-hidden transition-all duration-500 hover:scale-105 hover:border-primary h-full">
-                    <CardContent className="p-6 relative">
-                      <div className="absolute top-3 right-3 opacity-5 text-8xl font-serif">"</div>
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : testimonials.length > 0 ? (
+              <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {testimonials.map((testimonial) => (
+                  <StaggerItem key={testimonial.id}>
+                    <div className="glass-card rounded-xl p-6 h-full flex flex-col transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]">
+                      <MessageSquareQuote className="text-primary mb-4" size={32} />
+                      <p className="text-gray-300 mb-6 flex-1">{testimonial.content}</p>
 
-                      <Quote className="h-10 w-10 text-primary/70 mb-4" />
-
-                      <p className="text-gray-200 mb-6 italic relative z-10">"{testimonial.testimonial}"</p>
-
-                      {/* Rating stars */}
-                      <div className="flex mb-6">
+                      <div className="flex mb-4">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
                             size={16}
-                            className={`${
-                              i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-500"
-                            } mr-1`}
+                            className={i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-500"}
                           />
                         ))}
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <div className="relative h-14 w-14 rounded-full overflow-hidden border-2 border-primary/30">
+                        {testimonial.avatar ? (
                           <img
-                            src={testimonial.image || "/placeholder.svg"}
+                            src={testimonial.avatar || "/placeholder.svg"}
                             alt={testimonial.name}
-                            className="w-full h-full object-cover"
+                            className="w-14 h-14 rounded-full object-cover"
                           />
-                        </div>
-
+                        ) : (
+                          <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                            <span className="text-primary font-semibold text-lg">{testimonial.name.charAt(0)}</span>
+                          </div>
+                        )}
                         <div>
-                          <h3 className="font-semibold text-lg">{testimonial.name}</h3>
-                          <p className="text-sm text-primary">
+                          <h3 className="font-semibold">{testimonial.name}</h3>
+                          <p className="text-sm text-gray-400">
                             {testimonial.position}, {testimonial.company}
                           </p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20">
+                <MessageSquareQuote className="text-primary mb-4" size={64} />
+                <h2 className="text-2xl font-semibold mb-2">No testimonials yet</h2>
+                <p className="text-gray-300 text-center max-w-md">
+                  I'm looking forward to collecting feedback from clients and collaborators. Check back soon!
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </PageTransition>
