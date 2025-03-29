@@ -8,7 +8,6 @@
       "skipLibCheck": true,
   
       "moduleResolution": "bundler",
-      // "allowImportingTsExtensions": true, // Bu satırı kaldırın
       "isolatedModules": true,
       "moduleDetection": "force",
       "noEmit": false,
