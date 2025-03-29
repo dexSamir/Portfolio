@@ -12,17 +12,20 @@ import TestimonialsPage from "./pages/testimonials"
 import LoginPage from "./pages/login"
 import AdminDashboard from "./pages/admin"
 import AdminCreatePage from "./pages/admin/create"
+import NotFoundPage from "./pages/not-found"
+import ForbiddenPage from "./pages/forbidden"
 
 function App() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith("/admin")
   const isLoginRoute = location.pathname === "/login"
+  const isErrorPage = location.pathname === "/404" || location.pathname === "/403"
 
   return (
     <>
-      {!isAdminRoute && !isLoginRoute && <MouseTracker />}
-      {!isAdminRoute && !isLoginRoute && <Navigation />}
-      <main className={`relative ${!isAdminRoute && !isLoginRoute ? "z-10" : ""}`}>
+      {!isAdminRoute && !isLoginRoute && !isErrorPage && <MouseTracker />}
+      {!isAdminRoute && !isLoginRoute && !isErrorPage && <Navigation />}
+      <main className={`relative ${!isAdminRoute && !isLoginRoute && !isErrorPage ? "z-10" : ""}`}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<HomePage />} />
@@ -33,6 +36,9 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/create" element={<AdminCreatePage />} />
+            <Route path="/403" element={<ForbiddenPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AnimatePresence>
       </main>
