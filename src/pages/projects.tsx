@@ -2,29 +2,29 @@
 
 import { useState, useEffect } from "react"
 import { Github, ExternalLink, FolderGit2 } from "lucide-react"
-import { PageTransition } from "@/components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
-import { PageSkeleton } from "@/components/loading-skeleton"
-
-interface Project {
-  id: string
-  title: string
-  description: string
-  image?: string
-  technologies: string[]
-  githubUrl?: string
-  liveUrl?: string
-}
+import { PageTransition } from "../components/page-transition"
+import { ScrollAnimation, StaggerContainer, StaggerItem } from "../components/scroll-animation"
+import { PageSkeleton } from "../components/loading-skeleton"
+import { getProjects } from "../services/localDataService"
+import type { Project } from "../types/data-types"
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setTimeout(() => {
-      setProjects([])
-      setLoading(false)
-    }, 1000)
+    const fetchProjects = async () => {
+      try {
+        const projectsData = await getProjects()
+        setProjects(projectsData)
+      } catch (error) {
+        console.error("Error fetching projects:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProjects()
   }, [])
 
   return (
@@ -56,6 +56,9 @@ export default function ProjectsPage() {
                             src={project.image || "/placeholder.svg"}
                             alt={project.title}
                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                            }}
                           />
                         </div>
                       )}

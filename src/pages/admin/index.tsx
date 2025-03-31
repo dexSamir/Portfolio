@@ -14,51 +14,164 @@ import {
   Edit,
   User,
   Star,
+  Code,
 } from "lucide-react"
 import { AdminGuard } from "@/components/admin-guard"
+import { getProjects, getTestimonials, deleteProject, deleteTestimonial } from "@/services/localDataService"
+import type { Project, Testimonial } from "@/types/data-types"
+import type React from "react"
 
-interface Project {
-  id: string
-  title: string
-  description: string
-  image?: string
-  technologies: string[]
-  githubUrl?: string
-  liveUrl?: string
-}
-
-interface Testimonial {
-  id: string
-  name: string
-  position: string
-  company: string
-  avatar?: string
-  content: string
-  rating: number
-}
+import { Upload, Download } from "lucide-react"
+import { CodeExportDialog } from "../../components/code-export-dialog"
+// import { DataFileGuide } from "../../components/data-file-guide"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
   const [projects, setProjects] = useState<Project[]>([])
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [user, setUser] = useState<{ name: string; role: string } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [importSuccess, setImportSuccess] = useState<string | null>(null)
+  const [isCodeExportOpen, setIsCodeExportOpen] = useState(false)
+  const [projectsCode, setProjectsCode] = useState("")
+  const [testimonialsCode, setTestimonialsCode] = useState("")
 
   const navigate = useNavigate()
 
   useEffect(() => {
-    const userStr = localStorage.getItem("user")
-    if (userStr) {
-      setUser(JSON.parse(userStr))
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const [projectsData, testimonialsData] = await Promise.all([getProjects(), getTestimonials()])
+
+        setProjects(projectsData)
+        setTestimonials(testimonialsData)
+
+        const userStr = localStorage.getItem("user")
+        if (userStr) {
+          setUser(JSON.parse(userStr))
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    setProjects([])
-    setTestimonials([])
+    fetchData()
   }, [])
 
+  const handleDeleteProject = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this project?")) {
+      try {
+        await deleteProject(id)
+        setProjects(projects.filter((project) => project.id !== id))
+      } catch (error) {
+        console.error("Error deleting project:", error)
+        alert("Failed to delete project. Please try again.")
+      }
+    }
+  }
+
+  const handleDeleteTestimonial = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this testimonial?")) {
+      try {
+        await deleteTestimonial(id)
+        setTestimonials(testimonials.filter((testimonial) => testimonial.id !== id))
+      } catch (error) {
+        console.error("Error deleting testimonial:", error)
+        alert("Failed to delete testimonial. Please try again.")
+      }
+    }
+  }
+
   const handleLogout = () => {
-    localStorage.removeItem("auth_token")
     localStorage.removeItem("user")
     navigate("/login")
+  }
+
+  const handleExportData = () => {
+    const data = {
+      projects,
+      testimonials,
+    }
+
+    const jsonData = JSON.stringify(data, null, 2)
+    const blob = new Blob([jsonData], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+
+    const downloadLink = document.createElement("a")
+    downloadLink.href = url
+    downloadLink.download = "portfolio-data.json"
+    downloadLink.click()
+
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImportError(null)
+    setImportSuccess(null)
+
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string)
+
+        if (!data.projects || !data.testimonials) {
+          setImportError("Geçersiz veri formatı")
+          return
+        }
+
+        localStorage.setItem("projects", JSON.stringify(data.projects))
+        localStorage.setItem("testimonials", JSON.stringify(data.testimonials))
+
+        setImportSuccess("Veriler başarıyla içe aktarıldı! Yenileniyor...")
+
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      } catch (error) {
+        console.error("Error parsing JSON:", error)
+        setImportError("JSON dosyası ayrıştırılamadı. Lütfen geçerli bir dosya seçin.")
+      }
+    }
+
+    reader.onerror = () => {
+      setImportError("Dosya okunamadı")
+    }
+
+    reader.readAsText(file)
+  }
+
+  const handleGenerateTypeScriptCode = async () => {
+    const projectsCodeStr = `import type { Project } from "@/types/data-types"
+
+// Projelerin saklandığı dizi
+export const projects: Project[] = ${JSON.stringify(projects, null, 2)}`
+
+    const testimonialsCodeStr = `import type { Testimonial } from "@/types/data-types"
+
+// Referansların saklandığı dizi
+export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 2)}`
+
+    setProjectsCode(projectsCodeStr)
+    setTestimonialsCode(testimonialsCodeStr)
+    setIsCodeExportOpen(true)
+  }
+
+  if (loading) {
+    return (
+      <AdminGuard>
+        <div className="min-h-screen gradient-bg flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </AdminGuard>
+    )
   }
 
   return (
@@ -163,7 +276,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="glass-card rounded-xl p-6">
+              <div className="glass-card rounded-xl p-6 mb-6">
                 <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
                 <div className="flex flex-wrap gap-4">
                   <button
@@ -183,14 +296,56 @@ export default function AdminDashboard() {
                   </button>
 
                   <button
-                    onClick={() => setActiveTab("settings")}
+                    onClick={handleGenerateTypeScriptCode}
                     className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors"
                   >
-                    <Settings size={18} className="text-primary" />
-                    <span>Update Profile</span>
+                    <Code size={18} className="text-primary" />
+                    <span>Generate TypeScript Code</span>
                   </button>
                 </div>
               </div>
+
+              <div className="glass-card rounded-xl p-6">
+                <h3 className="text-xl font-semibold mb-4">Data Management</h3>
+
+                {importError && (
+                  <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
+                    {importError}
+                  </div>
+                )}
+
+                {importSuccess && (
+                  <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6">
+                    {importSuccess}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-4">
+                  <button
+                    onClick={handleExportData}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg transition-colors"
+                  >
+                    <Download size={18} />
+                    <span>Export Data (JSON)</span>
+                  </button>
+
+                  <label className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg transition-colors cursor-pointer">
+                    <Upload size={18} />
+                    <span>Import Data (JSON)</span>
+                    <input type="file" accept=".json" onChange={handleImportData} className="hidden" />
+                  </label>
+                </div>
+
+                <div className="mt-4 text-sm text-gray-400">
+                  <p className="mb-2">
+                    <strong>Export:</strong> Download your portfolio data as a JSON file. Keep this file as a backup.
+                  </p>
+                  <p>
+                    <strong>Import:</strong> Upload a previously exported JSON file to restore your portfolio data.
+                  </p>
+                </div>
+              </div>
+              {/* <DataFileGuide /> */}
             </motion.div>
           )}
 
@@ -236,6 +391,9 @@ export default function AdminDashboard() {
                                   src={project.image || "/placeholder.svg"}
                                   alt={project.title}
                                   className="w-10 h-10 rounded object-cover mr-3"
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                                  }}
                                 />
                               ) : (
                                 <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center mr-3">
@@ -290,7 +448,10 @@ export default function AdminDashboard() {
                             <button className="text-blue-400 hover:text-blue-300 mr-3">
                               <Edit size={18} />
                             </button>
-                            <button className="text-red-400 hover:text-red-300">
+                            <button
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => handleDeleteProject(project.id)}
+                            >
                               <Trash2 size={18} />
                             </button>
                           </td>
@@ -358,6 +519,9 @@ export default function AdminDashboard() {
                                   src={testimonial.avatar || "/placeholder.svg"}
                                   alt={testimonial.name}
                                   className="w-10 h-10 rounded-full object-cover mr-3"
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                                  }}
                                 />
                               ) : (
                                 <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
@@ -392,7 +556,10 @@ export default function AdminDashboard() {
                             <button className="text-blue-400 hover:text-blue-300 mr-3">
                               <Edit size={18} />
                             </button>
-                            <button className="text-red-400 hover:text-red-300">
+                            <button
+                              className="text-red-400 hover:text-red-300"
+                              onClick={() => handleDeleteTestimonial(testimonial.id)}
+                            >
                               <Trash2 size={18} />
                             </button>
                           </td>
@@ -434,7 +601,7 @@ export default function AdminDashboard() {
                         type="text"
                         id="name"
                         className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        defaultValue="Admin"
+                        defaultValue={user?.name || "Admin"}
                       />
                     </div>
                     <div>
@@ -520,7 +687,13 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      <CodeExportDialog
+        isOpen={isCodeExportOpen}
+        onClose={() => setIsCodeExportOpen(false)}
+        projectsCode={projectsCode}
+        testimonialsCode={testimonialsCode}
+      />
     </AdminGuard>
   )
 }
-

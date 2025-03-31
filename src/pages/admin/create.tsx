@@ -2,11 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
-import { ArrowLeft, Upload, Plus, Minus, Star, Save } from "lucide-react"
-import { AdminGuard } from "../../components/admin-guard"
+import { ArrowLeft, Upload, Plus, Minus, Star, Save, AlertCircle, CheckCircle } from "lucide-react"
+import { AdminGuard } from "@/components/admin-guard"
+import { addProject, addTestimonial } from "@/services/localDataService"
 
 export default function AdminCreatePage() {
   const navigate = useNavigate()
@@ -47,16 +48,43 @@ const ProjectForm = () => {
     liveUrl: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    setError(null)
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 10MB.")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFormData((prev) => ({ ...prev, image: event.target?.result as string }))
+        setError(null)
+      }
+    }
+    reader.onerror = () => {
+      setError("Failed to read the file. Please try again.")
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleTechChange = (index: number, value: string) => {
     const newTechnologies = [...formData.technologies]
     newTechnologies[index] = value
     setFormData((prev) => ({ ...prev, technologies: newTechnologies }))
+    setError(null)
   }
 
   const addTechnology = () => {
@@ -74,18 +102,54 @@ const ProjectForm = () => {
     }
   }
 
+  const validateForm = () => {
+    if (!formData.title.trim()) {
+      setError("Project title is required")
+      return false
+    }
+    if (!formData.description.trim()) {
+      setError("Project description is required")
+      return false
+    }
+
+    const emptyTech = formData.technologies.find((tech) => !tech.trim())
+    if (emptyTech !== undefined) {
+      setError("All technology fields must be filled")
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setIsSubmitting(true)
+    setError(null)
+    setSuccess(null)
 
     try {
-      console.log("Submitting project:", formData)
+      await addProject({
+        title: formData.title,
+        description: formData.description,
+        image: formData.image || undefined,
+        technologies: formData.technologies.filter((tech) => tech.trim() !== ""),
+        githubUrl: formData.githubUrl || undefined,
+        liveUrl: formData.liveUrl || undefined,
+      })
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      setSuccess("Project created successfully!")
 
-      navigate("/admin")
+      setTimeout(() => {
+        navigate("/admin")
+      }, 1500)
     } catch (error) {
       console.error("Error creating project:", error)
+      setError("Failed to create project. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -94,6 +158,20 @@ const ProjectForm = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="glass-card rounded-xl p-8">
+        {error && (
+          <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+            <AlertCircle size={18} className="mr-2 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+            <CheckCircle size={18} className="mr-2 flex-shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium mb-2">
@@ -129,9 +207,9 @@ const ProjectForm = () => {
 
           <div>
             <label htmlFor="image" className="block text-sm font-medium mb-2">
-              Image URL
+              Image
             </label>
-            <div className="flex gap-4">
+            <div className="flex gap-4 mb-2">
               <input
                 type="text"
                 id="image"
@@ -141,14 +219,25 @@ const ProjectForm = () => {
                 className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="https://example.com/image.jpg"
               />
-              <button
-                type="button"
-                className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors"
+              <label
+                htmlFor="file-upload"
+                className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors cursor-pointer"
               >
                 <Upload size={18} className="text-primary" />
                 <span>Upload</span>
-              </button>
+              </label>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+              />
             </div>
+            <p className="text-xs text-gray-400 mb-4">
+              You can enter an image URL or upload an image from your computer.
+            </p>
             {formData.image && (
               <div className="mt-4 relative w-full max-w-xs">
                 <img
@@ -157,6 +246,7 @@ const ProjectForm = () => {
                   className="w-full h-48 object-cover rounded-lg"
                   onError={(e) => {
                     ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                    setError("Failed to load image. Please check the URL or upload another image.")
                   }}
                 />
               </div>
@@ -268,28 +358,92 @@ const TestimonialForm = () => {
     rating: 5,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    setError(null)
+  }
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 10MB.")
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFormData((prev) => ({ ...prev, avatar: event.target?.result as string }))
+        setError(null)
+      }
+    }
+    reader.onerror = () => {
+      setError("Failed to read the file. Please try again.")
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleRatingChange = (rating: number) => {
     setFormData((prev) => ({ ...prev, rating }))
   }
 
+  const validateForm = () => {
+    if (!formData.name.trim()) {
+      setError("Client name is required")
+      return false
+    }
+    if (!formData.position.trim()) {
+      setError("Position is required")
+      return false
+    }
+    if (!formData.company.trim()) {
+      setError("Company is required")
+      return false
+    }
+    if (!formData.content.trim()) {
+      setError("Testimonial content is required")
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setIsSubmitting(true)
+    setError(null)
+    setSuccess(null)
 
     try {
-      console.log("Submitting testimonial:", formData)
+      await addTestimonial({
+        name: formData.name,
+        position: formData.position,
+        company: formData.company,
+        avatar: formData.avatar || undefined,
+        content: formData.content,
+        rating: formData.rating,
+      })
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      setSuccess("Testimonial created successfully!")
 
-      navigate("/admin")
+      setTimeout(() => {
+        navigate("/admin")
+      }, 1500)
     } catch (error) {
       console.error("Error creating testimonial:", error)
+      setError("Failed to create testimonial. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -298,6 +452,20 @@ const TestimonialForm = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       <div className="glass-card rounded-xl p-8">
+        {error && (
+          <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+            <AlertCircle size={18} className="mr-2 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+            <CheckCircle size={18} className="mr-2 flex-shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -317,9 +485,9 @@ const TestimonialForm = () => {
             </div>
             <div>
               <label htmlFor="avatar" className="block text-sm font-medium mb-2">
-                Avatar URL
+                Avatar
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 mb-2">
                 <input
                   type="text"
                   id="avatar"
@@ -329,10 +497,37 @@ const TestimonialForm = () => {
                   className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                   placeholder="https://example.com/avatar.jpg"
                 />
-                <button type="button" className="p-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors">
+                <label
+                  htmlFor="avatar-upload"
+                  className="p-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors cursor-pointer"
+                >
                   <Upload size={18} className="text-primary" />
-                </button>
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
               </div>
+              <p className="text-xs text-gray-400 mb-4">
+                You can enter an avatar URL or upload an image from your computer.
+              </p>
+              {formData.avatar && (
+                <div className="mt-2 relative w-16 h-16">
+                  <img
+                    src={formData.avatar || "/placeholder.svg"}
+                    alt="Avatar Preview"
+                    className="w-full h-full object-cover rounded-full"
+                    onError={(e) => {
+                      ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                      setError("Failed to load avatar image. Please check the URL or upload another image.")
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

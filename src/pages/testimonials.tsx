@@ -2,29 +2,29 @@
 
 import { useState, useEffect } from "react"
 import { MessageSquareQuote, Star } from "lucide-react"
-import { PageTransition } from "@/components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
-import { PageSkeleton } from "@/components/loading-skeleton"
-
-interface Testimonial {
-  id: string
-  name: string
-  position: string
-  company: string
-  avatar?: string
-  content: string
-  rating: number
-}
+import { PageTransition } from "../components/page-transition"
+import { ScrollAnimation, StaggerContainer, StaggerItem } from "../components/scroll-animation"
+import { PageSkeleton } from "../components/loading-skeleton"
+import { getTestimonials } from "../services/localDataService"
+import type { Testimonial } from "../types/data-types"
 
 export default function TestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setTimeout(() => {
-      setTestimonials([])
-      setLoading(false)
-    }, 1000)
+    const fetchTestimonials = async () => {
+      try {
+        const testimonialsData = await getTestimonials()
+        setTestimonials(testimonialsData)
+      } catch (error) {
+        console.error("Error fetching testimonials:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTestimonials()
   }, [])
 
   return (
@@ -68,6 +68,9 @@ export default function TestimonialsPage() {
                             src={testimonial.avatar || "/placeholder.svg"}
                             alt={testimonial.name}
                             className="w-14 h-14 rounded-full object-cover"
+                            onError={(e) => {
+                              ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                            }}
                           />
                         ) : (
                           <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
