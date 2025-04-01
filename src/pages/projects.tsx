@@ -46,12 +46,12 @@ export default function ProjectsPage() {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : projects.length > 0 ? (
-              <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {projects.map((project) => (
                   <StaggerItem key={project.id}>
                     <div className="glass-card rounded-xl overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]">
                       {project.image && (
-                        <div className="h-48 overflow-hidden">
+                        <div className="h-40 overflow-hidden">
                           <img
                             src={project.image || "/placeholder.svg"}
                             alt={project.title}
@@ -62,16 +62,16 @@ export default function ProjectsPage() {
                           />
                         </div>
                       )}
-                      <div className="p-6 flex-1 flex flex-col">
+                      <div className="p-4 flex-1 flex flex-col">
                         <div className="flex-1">
-                          <div className="flex justify-between items-start mb-4">
-                            <h3 className="text-xl font-semibold">{project.title}</h3>
-                            <FolderGit2 className="text-primary" size={24} />
+                          <div className="flex justify-between items-start mb-3">
+                            <h3 className="text-lg font-semibold">{project.title}</h3>
+                            <FolderGit2 className="text-primary" size={20} />
                           </div>
-                          <p className="text-gray-300 mb-6">{project.description}</p>
-                          <div className="flex flex-wrap gap-2 mb-6">
+                          <p className="text-gray-300 text-sm mb-4">{project.description}</p>
+                          <div className="flex flex-wrap gap-1 mb-4">
                             {project.technologies.map((tech) => (
-                              <span key={tech} className="text-xs px-3 py-1 rounded-full bg-primary/20 text-primary">
+                              <span key={tech} className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
                                 {tech}
                               </span>
                             ))}
