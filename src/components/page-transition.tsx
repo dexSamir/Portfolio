@@ -61,7 +61,6 @@ export const PageTransition = ({ children, className }: PageTransitionProps) => 
   )
 }
 
-// Optional components for more granular animations
 export const TransitionItem = motion.div
 
 export const FadeIn = ({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) => (
