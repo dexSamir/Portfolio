@@ -15,6 +15,8 @@ import {
   User,
   Star,
   Code,
+  Menu,
+  X,
 } from "lucide-react"
 import { AdminGuard } from "@/components/admin-guard"
 import { getProjects, getTestimonials, deleteProject, deleteTestimonial } from "@/services/localDataService"
@@ -22,8 +24,7 @@ import type { Project, Testimonial } from "@/types/data-types"
 import type React from "react"
 
 import { Upload, Download } from "lucide-react"
-import { CodeExportDialog } from "../../components/code-export-dialog"
-// import { DataFileGuide } from "../../components/data-file-guide"
+import { CodeExportDialog } from "@/components/code-export-dialog"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   const [isCodeExportOpen, setIsCodeExportOpen] = useState(false)
   const [projectsCode, setProjectsCode] = useState("")
   const [testimonialsCode, setTestimonialsCode] = useState("")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const navigate = useNavigate()
 
@@ -60,6 +62,17 @@ export default function AdminDashboard() {
     }
 
     fetchData()
+  }, [])
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(false)
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
   }, [])
 
   const handleDeleteProject = async (id: string) => {
@@ -151,17 +164,19 @@ export default function AdminDashboard() {
   const handleGenerateTypeScriptCode = async () => {
     const projectsCodeStr = `import type { Project } from "@/types/data-types"
 
-// Projelerin saklandığı dizi
 export const projects: Project[] = ${JSON.stringify(projects, null, 2)}`
 
     const testimonialsCodeStr = `import type { Testimonial } from "@/types/data-types"
 
-// Referansların saklandığı dizi
 export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 2)}`
 
     setProjectsCode(projectsCodeStr)
     setTestimonialsCode(testimonialsCodeStr)
     setIsCodeExportOpen(true)
+  }
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
   }
 
   if (loading) {
@@ -176,8 +191,15 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
 
   return (
     <AdminGuard>
-      <div className="min-h-screen flex">
-        <div className="w-64 bg-black/80 backdrop-blur-md border-r border-gray-800 fixed h-full">
+      <div className="min-h-screen flex relative">
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-black/50 text-white"
+        >
+          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+
+        <div className="hidden lg:block w-64 bg-black/80 backdrop-blur-md border-r border-gray-800 fixed h-full">
           <div className="p-6">
             <h1 className="text-2xl font-bold text-primary">Admin Panel</h1>
             <div className="mt-6 flex items-center gap-3">
@@ -251,10 +273,98 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
           </div>
         </div>
 
-        <div className="ml-64 flex-1 p-8 gradient-bg">
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md">
+            <div className="p-6 pt-16">
+              <h1 className="text-2xl font-bold text-primary">Admin Panel</h1>
+              <div className="mt-6 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="text-primary" size={20} />
+                </div>
+                <div>
+                  <p className="font-medium">{user?.name || "Admin"}</p>
+                  <p className="text-xs text-gray-400 capitalize">{user?.role || "admin"}</p>
+                </div>
+              </div>
+            </div>
+
+            <nav className="mt-6">
+              <ul className="space-y-2">
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab("dashboard")
+                      setSidebarOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-primary/10 transition-colors ${
+                      activeTab === "dashboard" ? "bg-primary/20 border-l-4 border-primary" : ""
+                    }`}
+                  >
+                    <LayoutDashboard size={20} className={activeTab === "dashboard" ? "text-primary" : ""} />
+                    <span>Dashboard</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab("projects")
+                      setSidebarOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-primary/10 transition-colors ${
+                      activeTab === "projects" ? "bg-primary/20 border-l-4 border-primary" : ""
+                    }`}
+                  >
+                    <FolderGit2 size={20} className={activeTab === "projects" ? "text-primary" : ""} />
+                    <span>Projects</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab("testimonials")
+                      setSidebarOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-primary/10 transition-colors ${
+                      activeTab === "testimonials" ? "bg-primary/20 border-l-4 border-primary" : ""
+                    }`}
+                  >
+                    <MessageSquareQuote size={20} className={activeTab === "testimonials" ? "text-primary" : ""} />
+                    <span>Testimonials</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab("settings")
+                      setSidebarOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-3 px-6 py-3 hover:bg-primary/10 transition-colors ${
+                      activeTab === "settings" ? "bg-primary/20 border-l-4 border-primary" : ""
+                    }`}
+                  >
+                    <Settings size={20} className={activeTab === "settings" ? "text-primary" : ""} />
+                    <span>Settings</span>
+                  </button>
+                </li>
+              </ul>
+            </nav>
+
+            <div className="absolute bottom-0 w-full p-6">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors"
+              >
+                <LogOut size={20} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="w-full lg:ml-64 p-4 lg:p-8 gradient-bg">
           {activeTab === "dashboard" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-              <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
+              <h2 className="text-3xl font-bold mb-6 mt-12 lg:mt-0">Dashboard</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <div className="glass-card rounded-xl p-6">
@@ -345,14 +455,13 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
                   </p>
                 </div>
               </div>
-              {/* <DataFileGuide /> */}
             </motion.div>
           )}
 
           {activeTab === "projects" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Projects</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 mt-12 lg:mt-0">
+                <h2 className="text-3xl font-bold mb-4 sm:mb-0">Projects</h2>
                 <button
                   onClick={() => navigate("/admin/create?type=project")}
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
@@ -363,8 +472,8 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
               </div>
 
               {projects.length > 0 ? (
-                <div className="glass-card rounded-xl overflow-hidden">
-                  <table className="w-full">
+                <div className="glass-card rounded-xl overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[700px]">
                     <thead className="bg-black/50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -479,8 +588,8 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
 
           {activeTab === "testimonials" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold">Testimonials</h2>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 mt-12 lg:mt-0">
+                <h2 className="text-3xl font-bold mb-4 sm:mb-0">Testimonials</h2>
                 <button
                   onClick={() => navigate("/admin/create?type=testimonial")}
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
@@ -491,8 +600,8 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
               </div>
 
               {testimonials.length > 0 ? (
-                <div className="glass-card rounded-xl overflow-hidden">
-                  <table className="w-full">
+                <div className="glass-card rounded-xl overflow-hidden overflow-x-auto">
+                  <table className="w-full min-w-[700px]">
                     <thead className="bg-black/50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -587,7 +696,7 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
 
           {activeTab === "settings" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-              <h2 className="text-3xl font-bold mb-6">Settings</h2>
+              <h2 className="text-3xl font-bold mb-6 mt-12 lg:mt-0">Settings</h2>
 
               <div className="glass-card rounded-xl p-6 mb-6">
                 <h3 className="text-xl font-semibold mb-4">Profile Settings</h3>
@@ -697,3 +806,4 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
     </AdminGuard>
   )
 }
+

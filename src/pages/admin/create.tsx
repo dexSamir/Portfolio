@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
-import { ArrowLeft, Upload, Plus, Minus, Star, Save, AlertCircle, CheckCircle } from "lucide-react"
+import { ArrowLeft, Upload, Plus, Star, Save, AlertCircle, CheckCircle } from "lucide-react"
 import { AdminGuard } from "@/components/admin-guard"
 import { addProject, addTestimonial } from "@/services/localDataService"
 
@@ -17,7 +17,7 @@ export default function AdminCreatePage() {
 
   return (
     <AdminGuard>
-      <div className="min-h-screen gradient-bg p-8">
+      <div className="min-h-screen gradient-bg p-4 sm:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-8">
             <button
@@ -27,7 +27,9 @@ export default function AdminCreatePage() {
               <ArrowLeft size={18} />
               <span>Back to Dashboard</span>
             </button>
-            <h1 className="text-3xl font-bold">Create New {type === "project" ? "Project" : "Testimonial"}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              Create New {type === "project" ? "Project" : "Testimonial"}
+            </h1>
           </div>
 
           {type === "project" ? <ProjectForm /> : <TestimonialForm />}
@@ -51,6 +53,23 @@ const ProjectForm = () => {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [newTech, setNewTech] = useState("")
+  const [availableTechs, setAvailableTechs] = useState([
+    "React",
+    "Next.js",
+    "TypeScript",
+    "JavaScript",
+    "HTML",
+    "CSS",
+    "Tailwind CSS",
+    "Material UI",
+    "Recharts",
+    "Node.js",
+    "Express",
+    "MongoDB",
+    "PostgreSQL",
+    "Redux",
+  ])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -63,7 +82,7 @@ const ProjectForm = () => {
     if (!file) return
 
     if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 10MB.")
+      setError("File is too large. Maximum size is 5MB.")
       return
     }
 
@@ -80,26 +99,38 @@ const ProjectForm = () => {
     reader.readAsDataURL(file)
   }
 
-  const handleTechChange = (index: number, value: string) => {
-    const newTechnologies = [...formData.technologies]
-    newTechnologies[index] = value
-    setFormData((prev) => ({ ...prev, technologies: newTechnologies }))
+  const handleTechSelect = (tech: string) => {
+    if (formData.technologies.includes(tech)) {
+      setFormData((prev) => ({
+        ...prev,
+        technologies: prev.technologies.filter((t) => t !== tech),
+      }))
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        technologies: [...prev.technologies.filter((t) => t !== ""), tech],
+      }))
+    }
     setError(null)
   }
 
-  const addTechnology = () => {
+  const addNewTechnology = () => {
+    if (!newTech.trim()) return
+
+    if (availableTechs.includes(newTech) || formData.technologies.includes(newTech)) {
+      setError("This technology already exists")
+      return
+    }
+
+    setAvailableTechs((prev) => [...prev, newTech])
+
     setFormData((prev) => ({
       ...prev,
-      technologies: [...prev.technologies, ""],
+      technologies: [...prev.technologies.filter((t) => t !== ""), newTech],
     }))
-  }
 
-  const removeTechnology = (index: number) => {
-    if (formData.technologies.length > 1) {
-      const newTechnologies = [...formData.technologies]
-      newTechnologies.splice(index, 1)
-      setFormData((prev) => ({ ...prev, technologies: newTechnologies }))
-    }
+    setNewTech("")
+    setError(null)
   }
 
   const validateForm = () => {
@@ -112,9 +143,8 @@ const ProjectForm = () => {
       return false
     }
 
-    const emptyTech = formData.technologies.find((tech) => !tech.trim())
-    if (emptyTech !== undefined) {
-      setError("All technology fields must be filled")
+    if (formData.technologies.filter((tech) => tech.trim() !== "").length === 0) {
+      setError("At least one technology must be selected")
       return false
     }
 
@@ -157,7 +187,7 @@ const ProjectForm = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <div className="glass-card rounded-xl p-8">
+      <div className="glass-card rounded-xl p-6 sm:p-8">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
             <AlertCircle size={18} className="mr-2 flex-shrink-0" />
@@ -255,36 +285,46 @@ const ProjectForm = () => {
 
           <div>
             <label className="block text-sm font-medium mb-2">Technologies *</label>
-            <div className="space-y-3">
-              {formData.technologies.map((tech, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={tech}
-                    onChange={(e) => handleTechChange(index, e.target.value)}
-                    required
-                    className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="React, Next.js, etc."
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeTechnology(index)}
-                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors"
-                    disabled={formData.technologies.length <= 1}
-                  >
-                    <Minus size={18} />
-                  </button>
-                </div>
-              ))}
+
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newTech}
+                onChange={(e) => setNewTech(e.target.value)}
+                className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                placeholder="Add new technology..."
+              />
               <button
                 type="button"
-                onClick={addTechnology}
+                onClick={addNewTechnology}
                 className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors"
               >
                 <Plus size={18} className="text-primary" />
-                <span>Add Technology</span>
+                <span>Add</span>
               </button>
             </div>
+
+            <div className="flex flex-wrap gap-2 mb-2">
+              {availableTechs.map((tech) => (
+                <button
+                  key={tech}
+                  type="button"
+                  onClick={() => handleTechSelect(tech)}
+                  className={`px-4 py-2 rounded-full text-sm transition-all ${
+                    formData.technologies.includes(tech)
+                      ? "bg-primary text-black font-medium"
+                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  {tech}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-xs text-gray-400 mt-2">
+              Click on technologies to select/deselect them. Selected technologies:{" "}
+              {formData.technologies.filter((t) => t !== "").join(", ") || "None"}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -372,8 +412,9 @@ const TestimonialForm = () => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 10MB.")
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 2MB.")
       return
     }
 
@@ -451,7 +492,7 @@ const TestimonialForm = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-      <div className="glass-card rounded-xl p-8">
+      <div className="glass-card rounded-xl p-6 sm:p-8">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
             <AlertCircle size={18} className="mr-2 flex-shrink-0" />
