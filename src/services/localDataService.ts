@@ -114,12 +114,10 @@ const generateTypeScriptCode = async () => {
 
     const projectsCode = `import type { Project } from "@/types/data-types"
 
-// Projelerin saklandığı dizi
 export const projects: Project[] = ${JSON.stringify(projects, null, 2)}`
 
     const testimonialsCode = `import type { Testimonial } from "@/types/data-types"
 
-// Referansların saklandığı dizi
 export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 2)}`
 
     console.log("--- projectdata.ts ---")
