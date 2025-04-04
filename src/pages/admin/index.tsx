@@ -25,6 +25,7 @@ import type React from "react"
 
 import { Upload, Download } from "lucide-react"
 import { CodeExportDialog } from "@/components/code-export-dialog"
+import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -38,6 +39,12 @@ export default function AdminDashboard() {
   const [projectsCode, setProjectsCode] = useState("")
   const [testimonialsCode, setTestimonialsCode] = useState("")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string
+    type: "project" | "testimonial"
+    name: string
+  } | null>(null)
 
   const navigate = useNavigate()
 
@@ -75,28 +82,34 @@ export default function AdminDashboard() {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  const handleDeleteProject = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this project?")) {
-      try {
-        await deleteProject(id)
-        setProjects(projects.filter((project) => project.id !== id))
-      } catch (error) {
-        console.error("Error deleting project:", error)
-        alert("Failed to delete project. Please try again.")
+  const handleDeleteClick = (id: string, type: "project" | "testimonial", name: string) => {
+    setItemToDelete({ id, type, name })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return
+
+    try {
+      if (itemToDelete.type === "project") {
+        await deleteProject(itemToDelete.id)
+        setProjects(projects.filter((project) => project.id !== itemToDelete.id))
+      } else {
+        await deleteTestimonial(itemToDelete.id)
+        setTestimonials(testimonials.filter((testimonial) => testimonial.id !== itemToDelete.id))
       }
+    } catch (error) {
+      console.error(`Error deleting ${itemToDelete.type}:`, error)
+      alert(`Failed to delete ${itemToDelete.type}. Please try again.`)
+    } finally {
+      setDeleteDialogOpen(false)
+      setItemToDelete(null)
     }
   }
 
-  const handleDeleteTestimonial = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this testimonial?")) {
-      try {
-        await deleteTestimonial(id)
-        setTestimonials(testimonials.filter((testimonial) => testimonial.id !== id))
-      } catch (error) {
-        console.error("Error deleting testimonial:", error)
-        alert("Failed to delete testimonial. Please try again.")
-      }
-    }
+  const handleEditProject = (project: Project) => {
+    localStorage.setItem("editingProject", JSON.stringify(project))
+    navigate(`/admin/create?type=project&edit=true`)
   }
 
   const handleLogout = () => {
@@ -554,12 +567,15 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right">
-                            <button className="text-blue-400 hover:text-blue-300 mr-3">
+                            <button
+                              className="text-blue-400 hover:text-blue-300 mr-3"
+                              onClick={() => handleEditProject(project)}
+                            >
                               <Edit size={18} />
                             </button>
                             <button
                               className="text-red-400 hover:text-red-300"
-                              onClick={() => handleDeleteProject(project.id)}
+                              onClick={() => handleDeleteClick(project.id, "project", project.title)}
                             >
                               <Trash2 size={18} />
                             </button>
@@ -667,7 +683,7 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
                             </button>
                             <button
                               className="text-red-400 hover:text-red-300"
-                              onClick={() => handleDeleteTestimonial(testimonial.id)}
+                              onClick={() => handleDeleteClick(testimonial.id, "testimonial", testimonial.name)}
                             >
                               <Trash2 size={18} />
                             </button>
@@ -802,6 +818,14 @@ export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 
         onClose={() => setIsCodeExportOpen(false)}
         projectsCode={projectsCode}
         testimonialsCode={testimonialsCode}
+      />
+
+      <DeleteConfirmDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        itemName={itemToDelete?.name || ""}
+        itemType={itemToDelete?.type || "item"}
       />
     </AdminGuard>
   )

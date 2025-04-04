@@ -1,19 +1,33 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { motion } from "framer-motion"
-import { ArrowLeft, Upload, Plus, Star, Save, AlertCircle, CheckCircle } from "lucide-react"
-import { AdminGuard } from "@/components/admin-guard"
-import { addProject, addTestimonial } from "@/services/localDataService"
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  ArrowLeft,
+  Upload,
+  Plus,
+  Star,
+  Save,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import { AdminGuard } from "@/components/admin-guard";
+import {
+  addProject,
+  addTestimonial,
+  updateProject,
+} from "@/services/localDataService";
+import type { Project } from "@/types/data-types";
 
 export default function AdminCreatePage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const searchParams = new URLSearchParams(location.search)
-  const type = searchParams.get("type") || "project"
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const type = searchParams.get("type") || "project";
+  const isEdit = searchParams.get("edit") === "true";
 
   return (
     <AdminGuard>
@@ -28,32 +42,39 @@ export default function AdminCreatePage() {
               <span>Back to Dashboard</span>
             </button>
             <h1 className="text-2xl sm:text-3xl font-bold">
-              Create New {type === "project" ? "Project" : "Testimonial"}
+              {isEdit ? "Edit" : "Create New"}{" "}
+              {type === "project" ? "Project" : "Testimonial"}
             </h1>
           </div>
 
-          {type === "project" ? <ProjectForm /> : <TestimonialForm />}
+          {type === "project" ? (
+            <ProjectForm isEdit={isEdit} />
+          ) : (
+            <TestimonialForm />
+          )}
         </div>
       </div>
     </AdminGuard>
-  )
+  );
 }
 
-const ProjectForm = () => {
-  const navigate = useNavigate()
-  const [formData, setFormData] = useState({
+const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<
+    Omit<Project, "id" | "createdAt"> & { id?: string; createdAt?: string }
+  >({
     title: "",
     description: "",
     image: "",
     technologies: [""],
     githubUrl: "",
     liveUrl: "",
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [newTech, setNewTech] = useState("")
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newTech, setNewTech] = useState("");
   const [availableTechs, setAvailableTechs] = useState([
     "React",
     "Next.js",
@@ -62,131 +83,199 @@ const ProjectForm = () => {
     "HTML",
     "CSS",
     "Tailwind CSS",
-    "Material UI",
-    "Recharts",
     "Node.js",
     "Express",
     "MongoDB",
     "PostgreSQL",
+    "Firebase",
+    "AWS",
+    "Docker",
+    "GraphQL",
     "Redux",
-  ])
+    "Framer Motion",
+  ]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setError(null)
-  }
+  useEffect(() => {
+    if (isEdit) {
+      const editingProjectJson = localStorage.getItem("editingProject");
+      if (editingProjectJson) {
+        try {
+          const editingProject = JSON.parse(editingProjectJson);
+          setFormData(editingProject);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+          const newTechs = editingProject.technologies.filter(
+            (tech: string) => !availableTechs.includes(tech)
+          );
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 5MB.")
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setFormData((prev) => ({ ...prev, image: event.target?.result as string }))
-        setError(null)
+          if (newTechs.length > 0) {
+            setAvailableTechs((prev) => [...prev, ...newTechs]);
+          }
+        } catch (error) {
+          console.error("Error parsing editing project:", error);
+          setError("Failed to load project data for editing");
+        }
       }
     }
-    reader.onerror = () => {
-      setError("Failed to read the file. Please try again.")
+  }, [isEdit]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 10MB.");
+      return;
     }
-    reader.readAsDataURL(file)
-  }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setFormData((prev) => ({
+          ...prev,
+          image: event.target?.result as string,
+        }));
+        setError(null);
+      }
+    };
+    reader.onerror = () => {
+      setError("Failed to read the file. Please try again.");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleTechSelect = (tech: string) => {
     if (formData.technologies.includes(tech)) {
       setFormData((prev) => ({
         ...prev,
         technologies: prev.technologies.filter((t) => t !== tech),
-      }))
+      }));
     } else {
       setFormData((prev) => ({
         ...prev,
         technologies: [...prev.technologies.filter((t) => t !== ""), tech],
-      }))
+      }));
     }
-    setError(null)
-  }
+    setError(null);
+  };
 
   const addNewTechnology = () => {
-    if (!newTech.trim()) return
+    if (!newTech.trim()) return;
 
-    if (availableTechs.includes(newTech) || formData.technologies.includes(newTech)) {
-      setError("This technology already exists")
-      return
+    if (
+      availableTechs.includes(newTech) ||
+      formData.technologies.includes(newTech)
+    ) {
+      setError("This technology already exists");
+      return;
     }
 
-    setAvailableTechs((prev) => [...prev, newTech])
+    setAvailableTechs((prev) => [...prev, newTech]);
 
     setFormData((prev) => ({
       ...prev,
       technologies: [...prev.technologies.filter((t) => t !== ""), newTech],
-    }))
+    }));
 
-    setNewTech("")
-    setError(null)
-  }
+    setNewTech("");
+    setError(null);
+  };
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      setError("Project title is required")
-      return false
+      setError("Project title is required");
+      return false;
     }
     if (!formData.description.trim()) {
-      setError("Project description is required")
-      return false
+      setError("Project description is required");
+      return false;
     }
 
-    if (formData.technologies.filter((tech) => tech.trim() !== "").length === 0) {
-      setError("At least one technology must be selected")
-      return false
+    if (
+      formData.technologies.filter((tech) => tech.trim() !== "").length === 0
+    ) {
+      setError("At least one technology must be selected");
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setSuccess(null)
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
 
     try {
-      await addProject({
-        title: formData.title,
-        description: formData.description,
-        image: formData.image || undefined,
-        technologies: formData.technologies.filter((tech) => tech.trim() !== ""),
-        githubUrl: formData.githubUrl || undefined,
-        liveUrl: formData.liveUrl || undefined,
-      })
+      if (isEdit && formData.id) {
+        await updateProject({
+          id: formData.id,
+          title: formData.title,
+          description: formData.description,
+          image: formData.image || undefined,
+          technologies: formData.technologies.filter(
+            (tech) => tech.trim() !== ""
+          ),
+          githubUrl: formData.githubUrl || undefined,
+          liveUrl: formData.liveUrl || undefined,
+          createdAt: formData.createdAt || new Date().toISOString(),
+        });
 
-      setSuccess("Project created successfully!")
+        // Show success message
+        setSuccess("Project updated successfully!");
+      } else {
+        // Add new project
+        await addProject({
+          title: formData.title,
+          description: formData.description,
+          image: formData.image || undefined,
+          technologies: formData.technologies.filter(
+            (tech) => tech.trim() !== ""
+          ),
+          githubUrl: formData.githubUrl || undefined,
+          liveUrl: formData.liveUrl || undefined,
+        });
+
+        setSuccess("Project created successfully!");
+      }
+
+      localStorage.removeItem("editingProject");
 
       setTimeout(() => {
-        navigate("/admin")
-      }, 1500)
+        navigate("/admin");
+      }, 1500);
     } catch (error) {
-      console.error("Error creating project:", error)
-      setError("Failed to create project. Please try again.")
+      console.error(
+        `Error ${isEdit ? "updating" : "creating"} project:`,
+        error
+      );
+      setError(
+        `Failed to ${isEdit ? "update" : "create"} project. Please try again.`
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="glass-card rounded-xl p-6 sm:p-8">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
@@ -220,7 +309,10 @@ const ProjectForm = () => {
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium mb-2"
+            >
               Description *
             </label>
             <textarea
@@ -275,8 +367,10 @@ const ProjectForm = () => {
                   alt="Preview"
                   className="w-full h-48 object-cover rounded-lg"
                   onError={(e) => {
-                    ;(e.target as HTMLImageElement).src = "/placeholder.svg"
-                    setError("Failed to load image. Please check the URL or upload another image.")
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                    setError(
+                      "Failed to load image. Please check the URL or upload another image."
+                    );
                   }}
                 />
               </div>
@@ -284,7 +378,9 @@ const ProjectForm = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Technologies *</label>
+            <label className="block text-sm font-medium mb-2">
+              Technologies *
+            </label>
 
             <div className="flex gap-2 mb-4">
               <input
@@ -322,14 +418,19 @@ const ProjectForm = () => {
             </div>
 
             <p className="text-xs text-gray-400 mt-2">
-              Click on technologies to select/deselect them. Selected technologies:{" "}
-              {formData.technologies.filter((t) => t !== "").join(", ") || "None"}
+              Click on technologies to select/deselect them. Selected
+              technologies:{" "}
+              {formData.technologies.filter((t) => t !== "").join(", ") ||
+                "None"}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="githubUrl" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="githubUrl"
+                className="block text-sm font-medium mb-2"
+              >
                 GitHub URL
               </label>
               <input
@@ -343,7 +444,10 @@ const ProjectForm = () => {
               />
             </div>
             <div>
-              <label htmlFor="liveUrl" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="liveUrl"
+                className="block text-sm font-medium mb-2"
+              >
                 Live Demo URL
               </label>
               <input
@@ -376,7 +480,7 @@ const ProjectForm = () => {
               ) : (
                 <>
                   <Save size={18} />
-                  <span>Save Project</span>
+                  <span>{isEdit ? "Update" : "Save"} Project</span>
                 </>
               )}
             </button>
@@ -384,11 +488,11 @@ const ProjectForm = () => {
         </form>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
 const TestimonialForm = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     position: "",
@@ -396,76 +500,82 @@ const TestimonialForm = () => {
     avatar: "",
     content: "",
     rating: 5,
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setError(null)
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
+  };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // Check file size (limit to 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 2MB.")
-      return
+      setError("File is too large. Maximum size is 2MB.");
+      return;
     }
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        setFormData((prev) => ({ ...prev, avatar: event.target?.result as string }))
-        setError(null)
+        setFormData((prev) => ({
+          ...prev,
+          avatar: event.target?.result as string,
+        }));
+        setError(null);
       }
-    }
+    };
     reader.onerror = () => {
-      setError("Failed to read the file. Please try again.")
-    }
-    reader.readAsDataURL(file)
-  }
+      setError("Failed to read the file. Please try again.");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleRatingChange = (rating: number) => {
-    setFormData((prev) => ({ ...prev, rating }))
-  }
+    setFormData((prev) => ({ ...prev, rating }));
+  };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError("Client name is required")
-      return false
+      setError("Client name is required");
+      return false;
     }
     if (!formData.position.trim()) {
-      setError("Position is required")
-      return false
+      setError("Position is required");
+      return false;
     }
     if (!formData.company.trim()) {
-      setError("Company is required")
-      return false
+      setError("Company is required");
+      return false;
     }
     if (!formData.content.trim()) {
-      setError("Testimonial content is required")
-      return false
+      setError("Testimonial content is required");
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
+    // Validate form
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setSuccess(null)
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
 
     try {
       await addTestimonial({
@@ -475,23 +585,27 @@ const TestimonialForm = () => {
         avatar: formData.avatar || undefined,
         content: formData.content,
         rating: formData.rating,
-      })
+      });
 
-      setSuccess("Testimonial created successfully!")
+      setSuccess("Testimonial created successfully!");
 
       setTimeout(() => {
-        navigate("/admin")
-      }, 1500)
+        navigate("/admin");
+      }, 1500);
     } catch (error) {
-      console.error("Error creating testimonial:", error)
-      setError("Failed to create testimonial. Please try again.")
+      console.error("Error creating testimonial:", error);
+      setError("Failed to create testimonial. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="glass-card rounded-xl p-6 sm:p-8">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
@@ -525,7 +639,10 @@ const TestimonialForm = () => {
               />
             </div>
             <div>
-              <label htmlFor="avatar" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="avatar"
+                className="block text-sm font-medium mb-2"
+              >
                 Avatar
               </label>
               <div className="flex gap-2 mb-2">
@@ -554,7 +671,8 @@ const TestimonialForm = () => {
                 />
               </div>
               <p className="text-xs text-gray-400 mb-4">
-                You can enter an avatar URL or upload an image from your computer.
+                You can enter an avatar URL or upload an image from your
+                computer.
               </p>
               {formData.avatar && (
                 <div className="mt-2 relative w-16 h-16">
@@ -563,8 +681,10 @@ const TestimonialForm = () => {
                     alt="Avatar Preview"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
-                      ;(e.target as HTMLImageElement).src = "/placeholder.svg"
-                      setError("Failed to load avatar image. Please check the URL or upload another image.")
+                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                      setError(
+                        "Failed to load avatar image. Please check the URL or upload another image."
+                      );
                     }}
                   />
                 </div>
@@ -574,7 +694,10 @@ const TestimonialForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="position" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="position"
+                className="block text-sm font-medium mb-2"
+              >
                 Position *
               </label>
               <input
@@ -589,7 +712,10 @@ const TestimonialForm = () => {
               />
             </div>
             <div>
-              <label htmlFor="company" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="company"
+                className="block text-sm font-medium mb-2"
+              >
                 Company *
               </label>
               <input
@@ -633,7 +759,11 @@ const TestimonialForm = () => {
                 >
                   <Star
                     size={24}
-                    className={star <= formData.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-500"}
+                    className={
+                      star <= formData.rating
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-500"
+                    }
                   />
                 </button>
               ))}
@@ -666,6 +796,5 @@ const TestimonialForm = () => {
         </form>
       </div>
     </motion.div>
-  )
-}
-
+  );
+};

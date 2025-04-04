@@ -1,4 +1,5 @@
 "use client"
+
 import { useRef } from "react"
 import { Link } from "react-router-dom"
 import { motion, useScroll, useTransform } from "framer-motion"
@@ -17,8 +18,6 @@ export default function HomePage() {
     "JavaScript Enthusiast",
     "C# Developer",
   ]
-  
-  const meImage = '/imgs/me.png';
 
   const containerRef = useRef(null)
   const { scrollYProgress } = useScroll({
@@ -59,7 +58,7 @@ export default function HomePage() {
           </div>
 
           <motion.div style={{ y, opacity }}>
-            <div className="container mx-auto px-4 pt-24 pb-16">
+            <div className="container mx-auto px-4 pt-24 pb-24 sm:pb-16">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 <ScrollAnimation
                   direction="left"
@@ -71,7 +70,7 @@ export default function HomePage() {
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <img src={meImage} alt="Samir Habibov" className="w-full h-full object-cover" />
+                      <img src="./imgs/me.png" alt="Samir Habibov" className="w-full h-full object-cover" />
                     </motion.div>
 
                     <SocialLinks />
@@ -160,7 +159,7 @@ export default function HomePage() {
                   </motion.p>
 
                   <motion.div
-                    className="flex flex-wrap gap-3 sm:gap-4"
+                    className="flex flex-wrap gap-3 sm:gap-4 mb-8"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 1.2 }}

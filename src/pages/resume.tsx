@@ -1,218 +1,278 @@
-"use client";
-import { motion } from "framer-motion";
-import { Download, Award, GraduationCap, Briefcase } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { PageTransition } from "../components/page-transition";
-import {
-  ScrollAnimation,
-  StaggerContainer,
-  StaggerItem,
-} from "../components/scroll-animation";
-import { PageSkeleton } from "../components/loading-skeleton";
+"use client"
+
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Briefcase, GraduationCap, Award, Code, Languages, FileDown } from "lucide-react"
+import { PageTransition } from "@/components/page-transition"
+import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
+import { PageSkeleton } from "@/components/loading-skeleton"
 
 export default function ResumePage() {
-  const cvUrl = "/imgs/resume/Samir_Habibov_CV.pdf";
-  const skills = [
-    { name: "ASP.NET Core MVC", level: 90 },
-    { name: "ASP.NET Web API", level: 85 },
-    { name: "C#", level: 90 },
-    { name: "Entity Framework Core", level: 80 },
-    { name: "JavaScript", level: 85 },
-    { name: "React", level: 80 },
-    { name: "HTML/CSS", level: 90 },
-    { name: "SQL (MS SQL, PostgreSQL)", level: 85 },
-    { name: "Git/GitHub", level: 80 },
-    { name: "Tailwind CSS", level: 75 },
-  ];
+  const [isDownloading, setIsDownloading] = useState(false)
 
-  const education = [
-    {
-      institution: "Baku State University",
-      degree: "Bachelor of Arts: Computer Science",
-      period: "09/2022 - Current",
-      location: "Baku, Azerbaijan",
-    },
-    {
-      institution: "SABAH Groups",
-      degree: "Bachelor of Arts: Computer Science",
-      period: "09/2023 - Current",
-      location: "Baku, Azerbaijan",
-    },
-    {
-      institution: "Code Academy",
-      degree: "Fullstack Backend Oriented",
-      period: "09/2024 - 01/2025",
-      location: "Baku, Azerbaijan",
-    },
-  ];
+  const handleDownload = () => {
+    setIsDownloading(true)
 
-  const experience = [
-    {
-      position: "Faculty Administration Board Member",
-      company: "Baku State University",
-      period: "November 2024 - Present",
-      description: "Serving as a student representative in faculty management.",
-    },
-    {
-      position: "Volunteer",
-      company: "Baku State University Volunteer Program",
-      period: "March 2023 - Present",
-      description:
-        "Actively participating in university events, contributing to organization and coordination processes.",
-    },
-  ];
+    setTimeout(() => {
+      const link = document.createElement("a")
+      link.href = "/resume.pdf" 
+      link.download = "samir-habibov-resume.pdf"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
 
-  const awards = [
-    'NP-3 (Newbie Programmers - "Yeni Başlayan Proqramçılar") · 1st place (champion)',
-    "ICPC 2024-25 Azerbaijan Qualification (13.10.2024)",
-    '"Hand in Hand for Karabakh" ASAN Innovative Solutions Hackathon (08 - 09.11.2023)',
-    '"GeoPark Innovate" Hackathon (05 - 06.10.2024)',
-    '"Code8 2024" Hackathon (06.12.2024)',
-  ];
+      setIsDownloading(false)
+    }, 1500)
+  }
 
   return (
     <PageSkeleton>
       <PageTransition>
-        <div className="gradient-bg min-h-screen">
-          <div className="container mx-auto px-4 pt-24 pb-16">
-            <ScrollAnimation>
-              <div className="flex flex-col md:flex-row justify-between items-start mb-12">
-                <div>
-                  <h1 className="text-4xl md:text-6xl font-bold mb-3">
-                    My Resume
-                  </h1>
+        <div className="gradient-bg min-h-screen pt-24 pb-16 px-4">
+          <div className="container mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-12">
+              <div>
+                <ScrollAnimation direction="up">
+                  <h1 className="text-4xl md:text-5xl font-bold mb-4">My Resume</h1>
                   <div className="h-1 w-20 bg-primary mb-4"></div>
-                  <p className="text-xl text-gray-300">
-                    Professional background and skills
+                  <p className="text-xl text-gray-300 max-w-2xl">
+                    Here's a summary of my education, work experience, and skills. Feel free to download my full resume.
                   </p>
-                </div>
-
-                <Button
-                  className="hover-element button-like mt-4 md:mt-0 bg-primary text-black hover:bg-primary/80 transition-all duration-300"
-                  size="lg"
-                >
-                  <a href={cvUrl} download>
-                    <Download className="mr-2 h-5 w-5 " />
-                    Download CV
-                  </a>
-                </Button>
+                </ScrollAnimation>
               </div>
-            </ScrollAnimation>
+              <motion.button
+                onClick={handleDownload}
+                disabled={isDownloading}
+                className="hover-element button-like mt-6 md:mt-0 flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-full font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={
+                  isDownloading
+                    ? { y: [0, -5, 0], transition: { repeat: Number.POSITIVE_INFINITY, duration: 0.5 } }
+                    : {}
+                }
+              >
+                {isDownloading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                    <span>Downloading...</span>
+                  </>
+                ) : (
+                  <>
+                    <FileDown size={20} />
+                    <span>Download CV</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <ScrollAnimation direction="left" className="lg:col-span-1">
-                <div className="glass-card rounded-xl p-8 mb-8 border border-primary/10 hover:border-primary/30 transition-all duration-300">
-                  <h2 className="text-2xl font-bold mb-8 flex items-center">
-                    <span className="bg-primary/20 p-2 rounded-lg mr-3">
-                      <Award className="h-5 w-5 text-primary" />
-                    </span>
-                    <span>Skills</span>
-                  </h2>
+              <div className="lg:col-span-1">
+                <ScrollAnimation direction="left">
+                  <div className="glass-card rounded-xl p-8 mb-8">
+                    <div className="flex items-center mb-8">
+                      <div className="bg-primary/20 p-3 rounded-full mr-3">
+                        <Code className="text-primary" size={24} />
+                      </div>
+                      <h2 className="text-2xl font-bold">Skills</h2>
+                    </div>
 
-                  <div className="space-y-6">
-                    {skills.map((skill, index) => (
-                      <StaggerItem key={index}>
-                        <div>
-                          <div className="flex justify-between mb-2">
-                            <span className="font-medium">{skill.name}</span>
-                            <span className="text-primary font-semibold">
-                              {skill.level}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-700/50 rounded-full h-3 backdrop-blur-sm">
-                            <motion.div
-                              className="bg-gradient-to-r from-primary/80 to-primary h-3 rounded-full relative overflow-hidden"
-                              initial={{ width: 0 }}
-                              whileInView={{ width: `${skill.level}%` }}
-                              transition={{
-                                duration: 1,
-                                delay: 0.2 + index * 0.1,
-                              }}
-                              viewport={{ once: true }}
-                            >
-                              <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.3)_50%,transparent_100%)] animate-[shimmer_1.5s_infinite]"></div>
-                            </motion.div>
-                          </div>
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">React</span>
+                          <span>90%</span>
                         </div>
-                      </StaggerItem>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="glass-card rounded-xl p-8 border border-primary/10 hover:border-primary/30 transition-all duration-300">
-                  <h2 className="text-2xl font-bold mb-8 flex items-center">
-                    <span className="bg-primary/20 p-2 rounded-lg mr-3">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M2 12h5m10 0h5" />
-                        <path d="M12 2v20" />
-                        <path d="M9 9h6" />
-                        <path d="M9 15h6" />
-                      </svg>
-                    </span>
-                    <span>Languages</span>
-                  </h2>
-
-                  <StaggerContainer>
-                    <StaggerItem>
-                      <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">Azerbaijani</span>
-                          <span className="text-primary font-medium">
-                            Native
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-700/50 rounded-full h-3">
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
                           <motion.div
-                            className="bg-gradient-to-r from-primary/80 to-primary h-3 rounded-full"
+                            className="h-full bg-primary"
                             initial={{ width: 0 }}
-                            whileInView={{ width: "100%" }}
-                            transition={{ duration: 1 }}
+                            whileInView={{ width: "90%" }}
+                            transition={{ duration: 1, delay: 0.1 }}
                             viewport={{ once: true }}
                           ></motion.div>
                         </div>
                       </div>
-                    </StaggerItem>
 
-                    <StaggerItem>
-                      <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">Turkish</span>
-                          <span className="text-primary font-medium">
-                            Fluent
-                          </span>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">JavaScript</span>
+                          <span>85%</span>
                         </div>
-                        <div className="w-full bg-gray-700/50 rounded-full h-3">
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
                           <motion.div
-                            className="bg-gradient-to-r from-primary/80 to-primary h-3 rounded-full"
+                            className="h-full bg-primary"
                             initial={{ width: 0 }}
-                            whileInView={{ width: "95%" }}
+                            whileInView={{ width: "85%" }}
                             transition={{ duration: 1, delay: 0.2 }}
                             viewport={{ once: true }}
                           ></motion.div>
                         </div>
                       </div>
-                    </StaggerItem>
 
-                    <StaggerItem>
-                      <div className="mb-6">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">English</span>
-                          <span className="text-primary font-medium">
-                            B1 (Intermediate)
-                          </span>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">TypeScript</span>
+                          <span>80%</span>
                         </div>
-                        <div className="w-full bg-gray-700/50 rounded-full h-3">
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
                           <motion.div
-                            className="bg-gradient-to-r from-primary/80 to-primary h-3 rounded-full"
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "80%" }}
+                            transition={{ duration: 1, delay: 0.3 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">C#</span>
+                          <span>85%</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "85%" }}
+                            transition={{ duration: 1, delay: 0.4 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">ASP.NET Core</span>
+                          <span>80%</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "80%" }}
+                            transition={{ duration: 1, delay: 0.5 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">SQL</span>
+                          <span>75%</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "75%" }}
+                            transition={{ duration: 1, delay: 0.6 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">HTML/CSS</span>
+                          <span>95%</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "95%" }}
+                            transition={{ duration: 1, delay: 0.7 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Tailwind CSS</span>
+                          <span>90%</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "90%" }}
+                            transition={{ duration: 1, delay: 0.8 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-card rounded-xl p-8">
+                    <div className="flex items-center mb-8">
+                      <div className="bg-primary/20 p-3 rounded-full mr-3">
+                        <Languages className="text-primary" size={24} />
+                      </div>
+                      <h2 className="text-2xl font-bold">Languages</h2>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">English</span>
+                          <span>Fluent</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "90%" }}
+                            transition={{ duration: 1, delay: 0.1 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Azerbaijani</span>
+                          <span>Native</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "100%" }}
+                            transition={{ duration: 1, delay: 0.2 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Russian</span>
+                          <span>Intermediate</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            whileInView={{ width: "70%" }}
+                            transition={{ duration: 1, delay: 0.3 }}
+                            viewport={{ once: true }}
+                          ></motion.div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Turkish</span>
+                          <span>Intermediate</span>
+                        </div>
+                        <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                          <motion.div
+                            className="h-full bg-primary"
                             initial={{ width: 0 }}
                             whileInView={{ width: "65%" }}
                             transition={{ duration: 1, delay: 0.4 }}
@@ -220,143 +280,152 @@ export default function ResumePage() {
                           ></motion.div>
                         </div>
                       </div>
-                    </StaggerItem>
+                    </div>
+                  </div>
+                </ScrollAnimation>
+              </div>
 
-                    <StaggerItem>
-                      <div>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium">Russian</span>
-                          <span className="text-primary font-medium">
-                            Intermediate
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-700/50 rounded-full h-3">
-                          <motion.div
-                            className="bg-gradient-to-r from-primary/80 to-primary h-3 rounded-full"
-                            initial={{ width: 0 }}
-                            whileInView={{ width: "60%" }}
-                            transition={{ duration: 1, delay: 0.6 }}
-                            viewport={{ once: true }}
-                          ></motion.div>
+              <div className="lg:col-span-2">
+                <ScrollAnimation direction="right">
+                  <div className="glass-card rounded-xl p-8 mb-8">
+                    <div className="flex items-center mb-8">
+                      <div className="bg-primary/20 p-3 rounded-full mr-3">
+                        <GraduationCap className="text-primary" size={24} />
+                      </div>
+                      <h2 className="text-2xl font-bold">Education</h2>
+                    </div>
+
+                    <div className="space-y-8">
+                      <div className="relative pl-8">
+                        <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
+                        <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
+                        <h3 className="text-xl font-semibold">Bachelor of Computer Science</h3>
+                        <p className="text-lg text-gray-300">Azerbaijan Technical University</p>
+                        <div className="flex flex-wrap justify-between text-gray-400 mt-2">
+                          <span>Baku, Azerbaijan</span>
+                          <span>2022 - Present</span>
                         </div>
                       </div>
-                    </StaggerItem>
-                  </StaggerContainer>
-                </div>
-              </ScrollAnimation>
 
-              <ScrollAnimation
-                direction="right"
-                delay={0.3}
-                className="lg:col-span-2"
-              >
-                <div className="glass-card rounded-xl p-8 mb-8 border border-primary/10 hover:border-primary/30 transition-all duration-300">
-                  <h2 className="text-2xl font-bold mb-8 flex items-center">
-                    <span className="bg-primary/20 p-2 rounded-lg mr-3">
-                      <GraduationCap className="h-5 w-5 text-primary" />
-                    </span>
-                    <span>Education</span>
-                  </h2>
-
-                  <StaggerContainer>
-                    {education.map((edu, index) => (
-                      <StaggerItem key={index}>
-                        <div className="relative pl-8 pb-8 hover-element">
-                          <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
-                          <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,0,0.5)]"></div>
-
-                          <h3 className="text-2xl font-semibold mb-1">
-                            {edu.institution}
-                          </h3>
-                          <p className="text-primary font-medium text-lg mb-2">
-                            {edu.degree}
-                          </p>
-                          <div className="flex flex-wrap justify-between text-sm text-gray-400">
-                            <span className="bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                              {edu.period}
-                            </span>
-                            <span className="bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-                              {edu.location}
-                            </span>
-                          </div>
+                      <div className="relative pl-8">
+                        <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
+                        <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
+                        <h3 className="text-xl font-semibold">High School Diploma</h3>
+                        <p className="text-lg text-gray-300">Baku Modern Educational Complex</p>
+                        <div className="flex flex-wrap justify-between text-gray-400 mt-2">
+                          <span>Baku, Azerbaijan</span>
+                          <span>2011 - 2022</span>
                         </div>
-                      </StaggerItem>
-                    ))}
-                  </StaggerContainer>
-                </div>
+                      </div>
 
-                <div className="glass-card rounded-xl p-8 mb-8 border border-primary/10 hover:border-primary/30 transition-all duration-300">
-                  <h2 className="text-2xl font-bold mb-8 flex items-center">
-                    <span className="bg-primary/20 p-2 rounded-lg mr-3">
-                      <Briefcase className="h-5 w-5 text-primary" />
-                    </span>
-                    <span>Experience</span>
-                  </h2>
-
-                  <StaggerContainer>
-                    {experience.map((exp, index) => (
-                      <StaggerItem key={index}>
-                        <div className="relative pl-8 pb-8 hover-element">
-                          <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
-                          <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_rgba(0,255,0,0.5)]"></div>
-
-                          <h3 className="text-2xl font-semibold mb-1">
-                            {exp.position}
-                          </h3>
-                          <p className="text-primary font-medium text-lg mb-2">
-                            {exp.company}
-                          </p>
-                          <p className="bg-black/30 inline-block px-3 py-1 rounded-full backdrop-blur-sm text-sm text-gray-400 mb-3">
-                            {exp.period}
-                          </p>
-                          <p className="text-gray-300">{exp.description}</p>
+                      <div className="relative pl-8">
+                        <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
+                        <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
+                        <h3 className="text-xl font-semibold">Web Development Bootcamp</h3>
+                        <p className="text-lg text-gray-300">Udemy</p>
+                        <div className="flex flex-wrap justify-between text-gray-400 mt-2">
+                          <span>Online</span>
+                          <span>2021</span>
                         </div>
-                      </StaggerItem>
-                    ))}
-                  </StaggerContainer>
-                </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="glass-card rounded-xl p-8 border border-primary/10 hover:border-primary/30 transition-all duration-300">
-                  <h2 className="text-2xl font-bold mb-8 flex items-center">
-                    <span className="bg-primary/20 p-2 rounded-lg mr-3">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-primary"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M12 2v6.5l3-3" />
-                        <path d="M12 8.5V15l-3-3" />
-                        <path d="M17 8l-5 5" />
-                        <path d="M19 9a7 7 0 1 1-14 0a7 7 0 0 1 14 0z" />
-                        <path d="M12 16v6" />
-                      </svg>
-                    </span>
-                    <span>Awards & Honors</span>
-                  </h2>
+                  <div className="glass-card rounded-xl p-8 mb-8">
+                    <div className="flex items-center mb-8">
+                      <div className="bg-primary/20 p-3 rounded-full mr-3">
+                        <Briefcase className="text-primary" size={24} />
+                      </div>
+                      <h2 className="text-2xl font-bold">Experience</h2>
+                    </div>
 
-                  <StaggerContainer>
-                    {awards.map((award, index) => (
-                      <StaggerItem key={index}>
-                        <div className="flex items-start mb-4 p-4 bg-black/30 rounded-lg backdrop-blur-sm border border-primary/10 hover:border-primary/20 transition-all duration-300 hover-element">
-                          <div className="flex-shrink-0 mt-1">
-                            <span className="inline-block w-2.5 h-2.5 bg-primary rounded-full mr-3 animate-pulse"></span>
-                          </div>
-                          <p>{award}</p>
+                    <div className="space-y-8">
+                      <div className="relative pl-8">
+                        <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
+                        <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
+                        <h3 className="text-xl font-semibold">Junior Web Developer</h3>
+                        <p className="text-lg text-gray-300">Freelance</p>
+                        <div className="flex flex-wrap justify-between text-gray-400 mt-2">
+                          <span>Remote</span>
+                          <span>2022 - Present</span>
                         </div>
+                        <p className="text-gray-300 mt-3">
+                          Developing responsive websites and web applications for clients using React, Next.js, and
+                          ASP.NET Core. Implementing modern UI designs with Tailwind CSS and Framer Motion.
+                        </p>
+                      </div>
+
+                      <div className="relative pl-8">
+                        <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
+                        <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
+                        <h3 className="text-xl font-semibold">Web Development Intern</h3>
+                        <p className="text-lg text-gray-300">Tech Solutions LLC</p>
+                        <div className="flex flex-wrap justify-between text-gray-400 mt-2">
+                          <span>Baku, Azerbaijan</span>
+                          <span>Summer 2021</span>
+                        </div>
+                        <p className="text-gray-300 mt-3">
+                          Assisted in developing and maintaining client websites. Worked with HTML, CSS, JavaScript, and
+                          WordPress. Collaborated with senior developers to implement new features and fix bugs.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-card rounded-xl p-8">
+                    <div className="flex items-center mb-8">
+                      <div className="bg-primary/20 p-3 rounded-full mr-3">
+                        <Award className="text-primary" size={24} />
+                      </div>
+                      <h2 className="text-2xl font-bold">Certifications & Awards</h2>
+                    </div>
+
+                    <StaggerContainer>
+                      <StaggerItem className="flex items-start mb-4 p-4 bg-black/30 rounded-lg">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-2.5 h-2.5 bg-primary rounded-full mr-3"></div>
+                        </div>
+                        <p className="text-gray-300">React Developer Certification - Udemy (2022)</p>
                       </StaggerItem>
-                    ))}
-                  </StaggerContainer>
-                </div>
-              </ScrollAnimation>
+
+                      <StaggerItem className="flex items-start mb-4 p-4 bg-black/30 rounded-lg">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-2.5 h-2.5 bg-primary rounded-full mr-3"></div>
+                        </div>
+                        <p className="text-gray-300">ASP.NET Core MVC Certification - Microsoft (2022)</p>
+                      </StaggerItem>
+
+                      <StaggerItem className="flex items-start mb-4 p-4 bg-black/30 rounded-lg">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-2.5 h-2.5 bg-primary rounded-full mr-3"></div>
+                        </div>
+                        <p className="text-gray-300">JavaScript Algorithms and Data Structures - freeCodeCamp (2021)</p>
+                      </StaggerItem>
+
+                      <StaggerItem className="flex items-start mb-4 p-4 bg-black/30 rounded-lg">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-2.5 h-2.5 bg-primary rounded-full mr-3"></div>
+                        </div>
+                        <p className="text-gray-300">
+                          3rd Place - National Programming Competition for Students (2020)
+                        </p>
+                      </StaggerItem>
+
+                      <StaggerItem className="flex items-start p-4 bg-black/30 rounded-lg">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-2.5 h-2.5 bg-primary rounded-full mr-3"></div>
+                        </div>
+                        <p className="text-gray-300">Responsive Web Design Certification - freeCodeCamp (2020)</p>
+                      </StaggerItem>
+                    </StaggerContainer>
+                  </div>
+                </ScrollAnimation>
+              </div>
             </div>
           </div>
         </div>
       </PageTransition>
     </PageSkeleton>
-  );
+  )
 }
+

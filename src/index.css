@@ -75,7 +75,6 @@
   cursor: none;
 }
 
-/* Masaüstü olmayan cihazlarda normal imleç kullanımı için */
 @media (max-width: 1023px) {
   .hover-element,
   .button-like {
@@ -106,13 +105,21 @@
 }
 
 .gradient-bg {
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(0, 100, 0, 0.2));
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.8),
+    rgba(0, 100, 0, 0.2)
+  );
   position: relative;
   transition: background 0.5s ease;
 }
 
 .light .gradient-bg {
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.9), rgba(220, 255, 220, 0.7));
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.9),
+    rgba(220, 255, 220, 0.7)
+  );
 }
 
 .gradient-bg::before {
@@ -173,7 +180,12 @@
 }
 
 .light .skeleton {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.05) 75%);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.05) 25%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.05) 75%
+  );
 }
 
 @keyframes shimmer {
@@ -198,8 +210,23 @@
 }
 
 * {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-property: color, background-color, border-color,
+    text-decoration-color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
