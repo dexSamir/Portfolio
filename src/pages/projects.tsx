@@ -1,75 +1,92 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Github, ExternalLink, FolderGit2, ChevronDown, ChevronUp, Filter } from "lucide-react"
-import { PageTransition } from "@/components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
-import { PageSkeleton } from "@/components/loading-skeleton"
-import { getProjects } from "@/services/localDataService"
-import type { Project } from "@/types/data-types"
+import { useState, useEffect } from "react";
+import {
+  Github,
+  ExternalLink,
+  FolderGit2,
+  ChevronDown,
+  ChevronUp,
+  Filter,
+} from "lucide-react";
+import { PageTransition } from "@/components/page-transition";
+import {
+  ScrollAnimation,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/scroll-animation";
+import { PageSkeleton } from "@/components/loading-skeleton";
+import { getProjects } from "@/services/localDataService";
+import type { Project } from "@/types/data-types";
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({})
-  const [selectedTechs, setSelectedTechs] = useState<string[]>([])
-  const [availableTechs, setAvailableTechs] = useState<string[]>([])
-  const [showFilters, setShowFilters] = useState(false)
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<
+    Record<string, boolean>
+  >({});
+  const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
+  const [availableTechs, setAvailableTechs] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const projectsData = await getProjects()
-        setProjects(projectsData)
-        setFilteredProjects(projectsData)
+        const projectsData = await getProjects();
+        setProjects(projectsData);
+        setFilteredProjects(projectsData);
 
-        const allTechs = new Set<string>()
+        const allTechs = new Set<string>();
         projectsData.forEach((project) => {
           project.technologies.forEach((tech) => {
-            allTechs.add(tech)
-          })
-        })
+            allTechs.add(tech);
+          });
+        });
 
-        setAvailableTechs(Array.from(allTechs).sort())
+        setAvailableTechs(Array.from(allTechs).sort());
       } catch (error) {
-        console.error("Error fetching projects:", error)
+        console.error("Error fetching projects:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     if (selectedTechs.length === 0) {
-      setFilteredProjects(projects)
+      setFilteredProjects(projects);
     } else {
-      const filtered = projects.filter((project) => selectedTechs.some((tech) => project.technologies.includes(tech)))
-      setFilteredProjects(filtered)
+      const filtered = projects.filter((project) =>
+        selectedTechs.some((tech) => project.technologies.includes(tech))
+      );
+      setFilteredProjects(filtered);
     }
-  }, [selectedTechs, projects])
+  }, [selectedTechs, projects]);
 
   const toggleDescription = (projectId: string) => {
     setExpandedDescriptions((prev) => ({
       ...prev,
       [projectId]: !prev[projectId],
-    }))
-  }
+    }));
+  };
 
   const toggleTechFilter = (tech: string) => {
-    setSelectedTechs((prev) => (prev.includes(tech) ? prev.filter((t) => t !== tech) : [...prev, tech]))
-  }
+    setSelectedTechs((prev) =>
+      prev.includes(tech) ? prev.filter((t) => t !== tech) : [...prev, tech]
+    );
+  };
 
   const clearFilters = () => {
-    setSelectedTechs([])
-  }
+    setSelectedTechs([]);
+  };
 
   const truncateText = (text: string, maxLength = 100) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength) + "..."
-  }
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "...";
+  };
 
   return (
     <PageSkeleton>
@@ -77,11 +94,13 @@ export default function ProjectsPage() {
         <div className="gradient-bg min-h-screen pt-24 pb-16 px-4">
           <div className="container mx-auto">
             <ScrollAnimation direction="up">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">My Projects</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                My Projects
+              </h1>
               <div className="h-1 w-20 bg-primary mb-8"></div>
               <p className="text-xl text-gray-300 mb-6 max-w-3xl">
-                Here are some of the projects I've worked on. Each project represents my skills and experience in
-                different technologies.
+                Here are some of the projects I've worked on. Each project
+                represents my skills and experience in different technologies.
               </p>
 
               <div className="mb-8">
@@ -91,7 +110,11 @@ export default function ProjectsPage() {
                 >
                   <Filter size={18} />
                   <span>Filter by Technology</span>
-                  {showFilters ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  {showFilters ? (
+                    <ChevronUp size={18} />
+                  ) : (
+                    <ChevronDown size={18} />
+                  )}
                 </button>
 
                 {showFilters && (
@@ -99,7 +122,10 @@ export default function ProjectsPage() {
                     <div className="flex justify-between items-center mb-3">
                       <h3 className="text-lg font-medium">Technologies</h3>
                       {selectedTechs.length > 0 && (
-                        <button onClick={clearFilters} className="text-sm text-primary hover:underline">
+                        <button
+                          onClick={clearFilters}
+                          className="text-sm text-primary hover:underline"
+                        >
                           Clear all
                         </button>
                       )}
@@ -120,7 +146,9 @@ export default function ProjectsPage() {
                       ))}
                     </div>
                     {selectedTechs.length > 0 && (
-                      <p className="text-sm text-gray-400 mt-3">Showing projects with: {selectedTechs.join(", ")}</p>
+                      <p className="text-sm text-gray-400 mt-3">
+                        Showing projects with: {selectedTechs.join(", ")}
+                      </p>
                     )}
                   </div>
                 )}
@@ -132,7 +160,7 @@ export default function ProjectsPage() {
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : filteredProjects.length > 0 ? (
-              <StaggerContainer className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                 {filteredProjects.map((project) => (
                   <StaggerItem key={project.id}>
                     <div className="glass-card rounded-xl overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]">
@@ -143,7 +171,8 @@ export default function ProjectsPage() {
                             alt={project.title}
                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                             onError={(e) => {
-                              ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                              (e.target as HTMLImageElement).src =
+                                "/placeholder.svg";
                             }}
                           />
                         </div>
@@ -151,7 +180,9 @@ export default function ProjectsPage() {
                       <div className="p-4 flex-1 flex flex-col">
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-semibold">{project.title}</h3>
+                            <h3 className="text-lg font-semibold">
+                              {project.title}
+                            </h3>
                             <FolderGit2 className="text-primary" size={20} />
                           </div>
                           <div className="mb-4">
@@ -181,7 +212,10 @@ export default function ProjectsPage() {
                           </div>
                           <div className="flex flex-wrap gap-1 mb-4">
                             {project.technologies.map((tech) => (
-                              <span key={tech} className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                              <span
+                                key={tech}
+                                className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary"
+                              >
                                 {tech}
                               </span>
                             ))}
@@ -219,7 +253,9 @@ export default function ProjectsPage() {
             ) : (
               <div className="flex flex-col items-center justify-center py-20">
                 <FolderGit2 className="text-primary mb-4" size={64} />
-                <h2 className="text-2xl font-semibold mb-2">No projects found</h2>
+                <h2 className="text-2xl font-semibold mb-2">
+                  No projects found
+                </h2>
                 <p className="text-gray-300 text-center max-w-md">
                   {selectedTechs.length > 0
                     ? "No projects match your selected filters. Try selecting different technologies or clear all filters."
@@ -239,6 +275,5 @@ export default function ProjectsPage() {
         </div>
       </PageTransition>
     </PageSkeleton>
-  )
+  );
 }
-
