@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { MapPin, Phone, Mail, Send, MessageSquare } from "lucide-react"
-import { PageTransition } from "@/components/page-transition"
+import { PageTransition } from "../components/page-transition"
 import { ScrollAnimation } from "@/components/scroll-animation"
 import { PageSkeleton } from "@/components/loading-skeleton"
 
