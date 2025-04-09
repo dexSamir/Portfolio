@@ -1,16 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { MessageSquareQuote, Star } from "lucide-react"
-import { PageTransition } from "../components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "../components/scroll-animation"
-import { PageSkeleton } from "../components/loading-skeleton"
-import { getTestimonials } from "../services/localDataService"
-import type { Testimonial } from "../types/data-types"
+import { MessageSquareQuote, Star, Send } from "lucide-react"
+import { PageTransition } from "@/components/page-transition"
+import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
+import { PageSkeleton } from "@/components/loading-skeleton"
+import { getTestimonials } from "@/services/localDataService"
+import type { Testimonial } from "@/types/data-types"
+import { AddTestimonialDialog } from "@/components/add-testimonial-dialog"
+import { motion } from "framer-motion"
 
 export default function TestimonialsPage() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -97,10 +100,26 @@ export default function TestimonialsPage() {
                 </p>
               </div>
             )}
+
+            <motion.div
+              className="fixed bottom-6 right-6 z-30"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, type: "spring" }}
+            >
+              <motion.button
+                onClick={() => setIsAddDialogOpen(true)}
+                className="hover-element button-like flex items-center gap-2 px-6 py-4 rounded-full font-medium bg-primary text-black shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+              >
+                <Send size={20} />
+                <span>Add Testimonial</span>
+              </motion.button>
+            </motion.div>
           </div>
         </div>
+
+        <AddTestimonialDialog isOpen={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)} />
       </PageTransition>
     </PageSkeleton>
   )
 }
-

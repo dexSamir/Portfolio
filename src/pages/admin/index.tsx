@@ -19,6 +19,9 @@ import {
   X,
   Github,
   ExternalLink,
+  CheckCircle,
+  XCircle,
+  Bell,
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin-guard";
 import {
@@ -26,8 +29,15 @@ import {
   getTestimonials,
   deleteProject,
   deleteTestimonial,
+  getPendingTestimonials,
+  approveTestimonial,
+  deletePendingTestimonial,
 } from "@/services/localDataService";
-import type { Project, Testimonial } from "@/types/data-types";
+import type {
+  Project,
+  Testimonial,
+  PendingTestimonial,
+} from "@/types/data-types";
 import type React from "react";
 
 import { Upload, Download } from "lucide-react";
@@ -39,6 +49,9 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [projects, setProjects] = useState<Project[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [pendingTestimonials, setPendingTestimonials] = useState<
+    PendingTestimonial[]
+  >([]);
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [importError, setImportError] = useState<string | null>(null);
@@ -50,7 +63,7 @@ export default function AdminDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{
     id: string;
-    type: "project" | "testimonial";
+    type: "project" | "testimonial" | "pendingTestimonial";
     name: string;
   } | null>(null);
 
@@ -60,13 +73,16 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [projectsData, testimonialsData] = await Promise.all([
-          getProjects(),
-          getTestimonials(),
-        ]);
+        const [projectsData, testimonialsData, pendingTestimonialsData] =
+          await Promise.all([
+            getProjects(),
+            getTestimonials(),
+            getPendingTestimonials(),
+          ]);
 
         setProjects(projectsData);
         setTestimonials(testimonialsData);
+        setPendingTestimonials(pendingTestimonialsData);
 
         const userStr = localStorage.getItem("user");
         if (userStr) {
@@ -95,7 +111,7 @@ export default function AdminDashboard() {
 
   const handleDeleteClick = (
     id: string,
-    type: "project" | "testimonial",
+    type: "project" | "testimonial" | "pendingTestimonial",
     name: string
   ) => {
     setItemToDelete({ id, type, name });
@@ -111,10 +127,17 @@ export default function AdminDashboard() {
         setProjects(
           projects.filter((project) => project.id !== itemToDelete.id)
         );
-      } else {
+      } else if (itemToDelete.type === "testimonial") {
         await deleteTestimonial(itemToDelete.id);
         setTestimonials(
           testimonials.filter(
+            (testimonial) => testimonial.id !== itemToDelete.id
+          )
+        );
+      } else if (itemToDelete.type === "pendingTestimonial") {
+        await deletePendingTestimonial(itemToDelete.id);
+        setPendingTestimonials(
+          pendingTestimonials.filter(
             (testimonial) => testimonial.id !== itemToDelete.id
           )
         );
@@ -125,6 +148,24 @@ export default function AdminDashboard() {
     } finally {
       setDeleteDialogOpen(false);
       setItemToDelete(null);
+    }
+  };
+
+  const handleApproveTestimonial = async (id: string) => {
+    try {
+      await approveTestimonial(id);
+
+      setPendingTestimonials(
+        pendingTestimonials.filter((testimonial) => testimonial.id !== id)
+      );
+
+      const updatedTestimonials = await getTestimonials();
+      setTestimonials(updatedTestimonials);
+
+      alert("Testimonial approved successfully!");
+    } catch (error) {
+      console.error("Error approving testimonial:", error);
+      alert("Failed to approve testimonial. Please try again.");
     }
   };
 
@@ -142,6 +183,7 @@ export default function AdminDashboard() {
     const data = {
       projects,
       testimonials,
+      pendingTestimonials,
     };
 
     const jsonData = JSON.stringify(data, null, 2);
@@ -176,6 +218,13 @@ export default function AdminDashboard() {
 
         localStorage.setItem("projects", JSON.stringify(data.projects));
         localStorage.setItem("testimonials", JSON.stringify(data.testimonials));
+
+        if (data.pendingTestimonials) {
+          localStorage.setItem(
+            "pendingTestimonials",
+            JSON.stringify(data.pendingTestimonials)
+          );
+        }
 
         setImportSuccess("Veriler başarıyla içe aktarıldı! Yenileniyor...");
 
@@ -305,6 +354,11 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
                     }
                   />
                   <span>Testimonials</span>
+                  {pendingTestimonials.length > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {pendingTestimonials.length}
+                    </span>
+                  )}
                 </button>
               </li>
               <li>
@@ -415,6 +469,11 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
                       }
                     />
                     <span>Testimonials</span>
+                    {pendingTestimonials.length > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {pendingTestimonials.length}
+                      </span>
+                    )}
                   </button>
                 </li>
                 <li>
@@ -483,14 +542,23 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
                   </p>
                 </div>
 
-                <div className="glass-card rounded-xl p-6">
-                  <h3 className="text-xl font-semibold mb-2">Last Login</h3>
-                  <p className="text-xl font-medium">
-                    {new Date().toLocaleDateString()}
+                <div className="glass-card rounded-xl p-6 relative">
+                  <h3 className="text-xl font-semibold mb-2">
+                    Pending Reviews
+                  </h3>
+                  <p className="text-4xl font-bold text-primary">
+                    {pendingTestimonials.length}
                   </p>
                   <p className="text-gray-400 mt-2">
-                    {new Date().toLocaleTimeString()}
+                    Testimonials awaiting approval
                   </p>
+
+                  {pendingTestimonials.length > 0 && (
+                    <div className="absolute top-4 right-4">
+                      <div className="animate-ping absolute h-3 w-3 rounded-full bg-red-500 opacity-75"></div>
+                      <div className="relative rounded-full h-3 w-3 bg-red-500"></div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -520,6 +588,19 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
                     <Code size={18} className="text-primary" />
                     <span>Generate TypeScript Code</span>
                   </button>
+
+                  {pendingTestimonials.length > 0 && (
+                    <button
+                      onClick={() => setActiveTab("testimonials")}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors text-red-300"
+                    >
+                      <Bell size={18} />
+                      <span>Review Pending Testimonials</span>
+                      <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {pendingTestimonials.length}
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -850,6 +931,205 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
                   <Plus size={18} />
                   <span>Add Testimonial</span>
                 </button>
+              </div>
+
+              {pendingTestimonials.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center mb-4">
+                    <Bell className="text-red-400 mr-2" size={20} />
+                    <h3 className="text-xl font-semibold">
+                      Pending Reviews ({pendingTestimonials.length})
+                    </h3>
+                  </div>
+
+                  <div className="glass-card rounded-xl overflow-hidden border border-red-500/30">
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-black/50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              Client
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              Content
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              Rating
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800">
+                          {pendingTestimonials.map((testimonial) => (
+                            <tr key={testimonial.id}>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  {testimonial.avatar ? (
+                                    <img
+                                      src={
+                                        testimonial.avatar || "/placeholder.svg"
+                                      }
+                                      alt={testimonial.name}
+                                      className="w-10 h-10 rounded-full object-cover mr-3"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src =
+                                          "/placeholder.svg";
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                                      <span className="text-primary font-semibold">
+                                        {testimonial.name.charAt(0)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className="font-medium">
+                                      {testimonial.name}
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                      {testimonial.position},{" "}
+                                      {testimonial.company}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="text-sm text-gray-300 truncate max-w-xs">
+                                  {testimonial.content}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      size={16}
+                                      className={
+                                        i < testimonial.rating
+                                          ? "text-yellow-400 fill-yellow-400"
+                                          : "text-gray-500"
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <button
+                                  className="text-green-400 hover:text-green-300 mr-3"
+                                  onClick={() =>
+                                    handleApproveTestimonial(testimonial.id)
+                                  }
+                                >
+                                  <CheckCircle size={18} />
+                                </button>
+                                <button
+                                  className="text-red-400 hover:text-red-300"
+                                  onClick={() =>
+                                    handleDeleteClick(
+                                      testimonial.id,
+                                      "pendingTestimonial",
+                                      testimonial.name
+                                    )
+                                  }
+                                >
+                                  <XCircle size={18} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="md:hidden space-y-4 p-4">
+                      {pendingTestimonials.map((testimonial) => (
+                        <div
+                          key={testimonial.id}
+                          className="bg-black/30 rounded-lg p-4 border-l-4 border-red-500"
+                        >
+                          <div className="flex items-center mb-3">
+                            {testimonial.avatar ? (
+                              <img
+                                src={testimonial.avatar || "/placeholder.svg"}
+                                alt={testimonial.name}
+                                className="w-12 h-12 rounded-full object-cover mr-3"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src =
+                                    "/placeholder.svg";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                                <span className="text-primary font-semibold text-lg">
+                                  {testimonial.name.charAt(0)}
+                                </span>
+                              </div>
+                            )}
+                            <div>
+                              <h3 className="font-medium">
+                                {testimonial.name}
+                              </h3>
+                              <p className="text-sm text-gray-400">
+                                {testimonial.position}, {testimonial.company}
+                              </p>
+                            </div>
+                          </div>
+
+                          <p className="text-sm text-gray-300 mb-3 line-clamp-3">
+                            {testimonial.content}
+                          </p>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  size={16}
+                                  className={
+                                    i < testimonial.rating
+                                      ? "text-yellow-400 fill-yellow-400"
+                                      : "text-gray-500"
+                                  }
+                                />
+                              ))}
+                            </div>
+                            <div className="flex">
+                              <button
+                                className="text-green-400 hover:text-green-300 mr-3 p-1"
+                                onClick={() =>
+                                  handleApproveTestimonial(testimonial.id)
+                                }
+                              >
+                                <CheckCircle size={18} />
+                              </button>
+                              <button
+                                className="text-red-400 hover:text-red-300 p-1"
+                                onClick={() =>
+                                  handleDeleteClick(
+                                    testimonial.id,
+                                    "pendingTestimonial",
+                                    testimonial.name
+                                  )
+                                }
+                              >
+                                <XCircle size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold mb-4">
+                  Approved Testimonials
+                </h3>
               </div>
 
               {testimonials.length > 0 ? (
@@ -1185,7 +1465,11 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleConfirmDelete}
         itemName={itemToDelete?.name || ""}
-        itemType={itemToDelete?.type || "item"}
+        itemType={
+          itemToDelete?.type === "pendingTestimonial"
+            ? "testimonial"
+            : itemToDelete?.type || "item"
+        }
       />
     </AdminGuard>
   );
