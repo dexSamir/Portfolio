@@ -151,7 +151,7 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
             <div className="relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"></div>
               <div className="p-6 flex items-start justify-between">
-                <h3 className="text-xl font-bold text-white">Yorum Ekle</h3>
+                <h3 className="text-xl font-bold text-white">Add Testimonial</h3>
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-800"
