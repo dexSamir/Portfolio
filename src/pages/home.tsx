@@ -12,10 +12,10 @@ import { PageSkeleton } from "@/components/loading-skeleton"
 
 export default function HomePage() {
   const roles = [
-    "Fullstack Developer",
-    "ASP.NET Core Expert",
+    "Backend Developer",
+    "ASP.NET Core Developer",
     "React Developer",
-    "JavaScript Enthusiast",
+    "Fullstack Developer",
     "C# Developer",
   ]
 

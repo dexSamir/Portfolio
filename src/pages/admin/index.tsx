@@ -212,7 +212,7 @@ export default function AdminDashboard() {
         const data = JSON.parse(event.target?.result as string);
 
         if (!data.projects || !data.testimonials) {
-          setImportError("Geçersiz veri formatı");
+          setImportError("Invalid JSON structure."); 
           return;
         }
 
@@ -226,7 +226,7 @@ export default function AdminDashboard() {
           );
         }
 
-        setImportSuccess("Veriler başarıyla içe aktarıldı! Yenileniyor...");
+        setImportSuccess("Datas imported successfully! Reloading...");
 
         setTimeout(() => {
           window.location.reload();
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
       } catch (error) {
         console.error("Error parsing JSON:", error);
         setImportError(
-          "JSON dosyası ayrıştırılamadı. Lütfen geçerli bir dosya seçin."
+          "JSON parsing error. Please check the file format."
         );
       }
     };

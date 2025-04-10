@@ -39,10 +39,6 @@ export default function LoginPage() {
           return
         }
       }
-      else if (credentials.username === "admin" && credentials.password === "admin123") {
-        loginSuccess()
-        return
-      }
 
       setError("Invalid username or password")
     } catch (err) {

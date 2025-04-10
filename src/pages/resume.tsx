@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Briefcase, GraduationCap, Award, Code, Languages, FileDown } from "lucide-react"
-import { PageTransition } from "@/components/page-transition"
-import { ScrollAnimation, StaggerContainer, StaggerItem } from "@/components/scroll-animation"
-import { PageSkeleton } from "@/components/loading-skeleton"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { GraduationCap, Code, Languages, FileDown } from "lucide-react";
+import { PageTransition } from "@/components/page-transition";
+import { ScrollAnimation } from "@/components/scroll-animation";
+import { PageSkeleton } from "@/components/loading-skeleton";
 
 export default function ResumePage() {
-  const [isDownloading, setIsDownloading] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleDownload = () => {
-    setIsDownloading(true)
+    setIsDownloading(true);
 
     setTimeout(() => {
-      const link = document.createElement("a")
-      link.href = "/resume.pdf" 
-      link.download = "samir-habibov-resume.pdf"
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      const link = document.createElement("a");
+      link.href = "/resume.pdf";
+      link.download = "samir-habibov-resume.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      setIsDownloading(false)
-    }, 1500)
-  }
+      setIsDownloading(false);
+    }, 1500);
+  };
 
   return (
     <PageSkeleton>
@@ -33,10 +33,13 @@ export default function ResumePage() {
             <div className="flex flex-col md:flex-row justify-between items-start mb-12">
               <div>
                 <ScrollAnimation direction="up">
-                  <h1 className="text-4xl md:text-5xl font-bold mb-4">My Resume</h1>
+                  <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                    My Resume
+                  </h1>
                   <div className="h-1 w-20 bg-primary mb-4"></div>
                   <p className="text-xl text-gray-300 max-w-2xl">
-                    Here's a summary of my education, work experience, and skills. Feel free to download my full resume.
+                    Here's a summary of my education, work experience, and
+                    skills. Feel free to download my full resume.
                   </p>
                 </ScrollAnimation>
               </div>
@@ -48,7 +51,13 @@ export default function ResumePage() {
                 whileTap={{ scale: 0.95 }}
                 animate={
                   isDownloading
-                    ? { y: [0, -5, 0], transition: { repeat: Number.POSITIVE_INFINITY, duration: 0.5 } }
+                    ? {
+                        y: [0, -5, 0],
+                        transition: {
+                          repeat: Number.POSITIVE_INFINITY,
+                          duration: 0.5,
+                        },
+                      }
                     : {}
                 }
               >
@@ -220,7 +229,7 @@ export default function ResumePage() {
                       <div>
                         <div className="flex justify-between mb-2">
                           <span className="font-medium">English</span>
-                          <span>Fluent</span>
+                          <span>B1</span>
                         </div>
                         <div className="h-2 bg-black/30 rounded-full overflow-hidden">
                           <motion.div
@@ -252,7 +261,7 @@ export default function ResumePage() {
                       <div>
                         <div className="flex justify-between mb-2">
                           <span className="font-medium">Russian</span>
-                          <span>Intermediate</span>
+                          <span>A2</span>
                         </div>
                         <div className="h-2 bg-black/30 rounded-full overflow-hidden">
                           <motion.div
@@ -268,7 +277,7 @@ export default function ResumePage() {
                       <div>
                         <div className="flex justify-between mb-2">
                           <span className="font-medium">Turkish</span>
-                          <span>Intermediate</span>
+                          <span>C1</span>
                         </div>
                         <div className="h-2 bg-black/30 rounded-full overflow-hidden">
                           <motion.div
@@ -299,8 +308,12 @@ export default function ResumePage() {
                       <div className="relative pl-8">
                         <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
                         <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
-                        <h3 className="text-xl font-semibold">Bachelor of Computer Science</h3>
-                        <p className="text-lg text-gray-300">Azerbaijan Technical University</p>
+                        <h3 className="text-xl font-semibold">
+                          Bachelor of Computer Science
+                        </h3>
+                        <p className="text-lg text-gray-300">
+                          Baku State University
+                        </p>
                         <div className="flex flex-wrap justify-between text-gray-400 mt-2">
                           <span>Baku, Azerbaijan</span>
                           <span>2022 - Present</span>
@@ -310,28 +323,32 @@ export default function ResumePage() {
                       <div className="relative pl-8">
                         <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
                         <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
-                        <h3 className="text-xl font-semibold">High School Diploma</h3>
-                        <p className="text-lg text-gray-300">Baku Modern Educational Complex</p>
+                        <h3 className="text-xl font-semibold">
+                          Bachelor of Computer Science
+                        </h3>
+                        <p className="text-lg text-gray-300">SABAH Groups</p>
                         <div className="flex flex-wrap justify-between text-gray-400 mt-2">
                           <span>Baku, Azerbaijan</span>
-                          <span>2011 - 2022</span>
+                          <span>2023 - Present</span>
                         </div>
                       </div>
 
                       <div className="relative pl-8">
                         <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-primary to-primary/20"></div>
                         <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-primary"></div>
-                        <h3 className="text-xl font-semibold">Web Development Bootcamp</h3>
+                        <h3 className="text-xl font-semibold">
+                          Full-stack Backend Oriented
+                        </h3>
                         <p className="text-lg text-gray-300">Udemy</p>
                         <div className="flex flex-wrap justify-between text-gray-400 mt-2">
                           <span>Online</span>
-                          <span>2021</span>
+                          <span>2024 - 2025</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="glass-card rounded-xl p-8 mb-8">
+                  {/* <div className="glass-card rounded-xl p-8 mb-8">
                     <div className="flex items-center mb-8">
                       <div className="bg-primary/20 p-3 rounded-full mr-3">
                         <Briefcase className="text-primary" size={24} />
@@ -370,9 +387,9 @@ export default function ResumePage() {
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="glass-card rounded-xl p-8">
+                  {/* <div className="glass-card rounded-xl p-8">
                     <div className="flex items-center mb-8">
                       <div className="bg-primary/20 p-3 rounded-full mr-3">
                         <Award className="text-primary" size={24} />
@@ -418,7 +435,7 @@ export default function ResumePage() {
                         <p className="text-gray-300">Responsive Web Design Certification - freeCodeCamp (2020)</p>
                       </StaggerItem>
                     </StaggerContainer>
-                  </div>
+                  </div> */}
                 </ScrollAnimation>
               </div>
             </div>
@@ -426,6 +443,5 @@ export default function ResumePage() {
         </div>
       </PageTransition>
     </PageSkeleton>
-  )
+  );
 }
-

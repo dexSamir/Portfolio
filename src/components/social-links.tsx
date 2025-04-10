@@ -17,7 +17,6 @@ export const SocialLinks = () => {
           key={link.name}
           href={link.url}
           target="_blank"
-          rel="noopener noreferrer"
           className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white mix-blend-difference hover:text-white transition-colors duration-200"
           whileHover={{ scale: 1.2 }}
           initial={{ opacity: 0, y: 20 }}

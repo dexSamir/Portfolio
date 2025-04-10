@@ -23,12 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment variables
+# Environment
 .env
 .env.local
 .env.development
 .env.production
 
-# Local configuration
+# Local 
 src/config.local.ts
 

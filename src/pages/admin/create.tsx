@@ -234,10 +234,8 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           createdAt: formData.createdAt || new Date().toISOString(),
         });
 
-        // Show success message
         setSuccess("Project updated successfully!");
       } else {
-        // Add new project
         await addProject({
           title: formData.title,
           description: formData.description,
@@ -518,9 +516,8 @@ const TestimonialForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (limit to 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 2MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File is too large. Maximum size is 10MB.");
       return;
     }
 
@@ -568,7 +565,6 @@ const TestimonialForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate form
     if (!validateForm()) {
       return;
     }

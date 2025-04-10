@@ -253,7 +253,7 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                      placeholder="Örn: Yazılım Geliştirici"
+                      placeholder="Software Developer"
                     />
                   </div>
                   <div>
@@ -268,7 +268,7 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                      placeholder="Örn: ABC Şirketi"
+                      placeholder="ABC Company"
                     />
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                     required
                     rows={4}
                     className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="Deneyiminizi paylaşın..."
+                    placeholder="Share your experience..."
                   ></textarea>
                 </div>
 
