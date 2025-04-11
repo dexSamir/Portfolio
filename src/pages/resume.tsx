@@ -235,7 +235,7 @@ export default function ResumePage() {
                           <motion.div
                             className="h-full bg-primary"
                             initial={{ width: 0 }}
-                            whileInView={{ width: "90%" }}
+                            whileInView={{ width: "50%" }}
                             transition={{ duration: 1, delay: 0.1 }}
                             viewport={{ once: true }}
                           ></motion.div>
@@ -267,7 +267,7 @@ export default function ResumePage() {
                           <motion.div
                             className="h-full bg-primary"
                             initial={{ width: 0 }}
-                            whileInView={{ width: "70%" }}
+                            whileInView={{ width: "40%" }}
                             transition={{ duration: 1, delay: 0.3 }}
                             viewport={{ once: true }}
                           ></motion.div>
@@ -283,7 +283,7 @@ export default function ResumePage() {
                           <motion.div
                             className="h-full bg-primary"
                             initial={{ width: 0 }}
-                            whileInView={{ width: "65%" }}
+                            whileInView={{ width: "90%" }}
                             transition={{ duration: 1, delay: 0.4 }}
                             viewport={{ once: true }}
                           ></motion.div>
@@ -339,9 +339,9 @@ export default function ResumePage() {
                         <h3 className="text-xl font-semibold">
                           Full-stack Backend Oriented
                         </h3>
-                        <p className="text-lg text-gray-300">Udemy</p>
+                        <p className="text-lg text-gray-300">Code Academy</p>
                         <div className="flex flex-wrap justify-between text-gray-400 mt-2">
-                          <span>Online</span>
+                          <span>Baku, Azerbaijan</span>
                           <span>2024 - 2025</span>
                         </div>
                       </div>
