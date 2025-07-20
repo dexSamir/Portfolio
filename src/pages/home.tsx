@@ -1,14 +1,12 @@
-"use client"
-
-import { useRef } from "react"
-import { Link } from "react-router-dom"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { Calendar, MapPin, Phone, Mail } from "lucide-react"
-import { PageTransition } from "@/components/page-transition"
-import { SocialLinks } from "@/components/social-links"
-import { TypingEffect } from "@/components/typing-effect"
-import { ScrollAnimation } from "@/components/scroll-animation"
-import { PageSkeleton } from "@/components/loading-skeleton"
+import { useRef } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Calendar, MapPin, Phone, Mail } from "lucide-react";
+import { PageTransition } from "@/components/page-transition";
+import { SocialLinks } from "@/components/social-links";
+import { TypingEffect } from "@/components/typing-effect";
+import { ScrollAnimation } from "@/components/scroll-animation";
+import { PageSkeleton } from "@/components/loading-skeleton";
 
 export default function HomePage() {
   const roles = [
@@ -17,21 +15,17 @@ export default function HomePage() {
     "React Developer",
     "Fullstack Developer",
     "C# Developer",
-  ]
+  ];
 
-  const containerRef = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  })
-
-  const y = useTransform(scrollYProgress, [0, 1], [0, 200])
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+  const containerRef = useRef(null);
 
   return (
     <PageSkeleton>
       <PageTransition>
-        <div className="gradient-bg min-h-screen relative overflow-hidden" ref={containerRef}>
+        <div
+          className="gradient-bg min-h-screen relative overflow-hidden"
+          ref={containerRef}
+        >
           <div className="absolute inset-0 pointer-events-none">
             {[...Array(20)].map((_, i) => (
               <motion.div
@@ -57,7 +51,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <motion.div style={{ y, opacity }}>
+          <motion.div>
             <div className="container mx-auto px-4 pt-24 pb-24 sm:pb-16">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
                 <ScrollAnimation
@@ -70,7 +64,11 @@ export default function HomePage() {
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <img src="./imgs/me.png" alt="Samir Habibov" className="w-full h-full object-cover" />
+                      <img
+                        src="./imgs/me.png"
+                        alt="Samir Habibov"
+                        className="w-full h-full object-cover"
+                      />
                     </motion.div>
 
                     <SocialLinks />
@@ -81,7 +79,9 @@ export default function HomePage() {
                         whileHover={{ x: 5 }}
                       >
                         <Calendar className="text-primary" size={16} />
-                        <span className="text-xs sm:text-sm text-gray-300">14.10.2005</span>
+                        <span className="text-xs sm:text-sm text-gray-300">
+                          14.10.2005
+                        </span>
                       </motion.div>
 
                       <motion.div
@@ -89,7 +89,9 @@ export default function HomePage() {
                         whileHover={{ x: 5 }}
                       >
                         <Phone className="text-primary" size={16} />
-                        <span className="text-xs sm:text-sm text-gray-300">+994 50 622 93 28</span>
+                        <span className="text-xs sm:text-sm text-gray-300">
+                          +994 50 622 93 28
+                        </span>
                       </motion.div>
 
                       <motion.div
@@ -97,7 +99,9 @@ export default function HomePage() {
                         whileHover={{ x: 5 }}
                       >
                         <Mail className="text-primary" size={16} />
-                        <span className="text-xs sm:text-sm text-gray-300 break-all">hebibovsamir26@gmail.com</span>
+                        <span className="text-xs sm:text-sm text-gray-300 break-all">
+                          hebibovsamir26@gmail.com
+                        </span>
                       </motion.div>
 
                       <motion.div
@@ -105,13 +109,19 @@ export default function HomePage() {
                         whileHover={{ x: 5 }}
                       >
                         <MapPin className="text-primary" size={16} />
-                        <span className="text-xs sm:text-sm text-gray-300">Baku, Azerbaijan</span>
+                        <span className="text-xs sm:text-sm text-gray-300">
+                          Baku, Azerbaijan
+                        </span>
                       </motion.div>
                     </motion.div>
                   </div>
                 </ScrollAnimation>
 
-                <ScrollAnimation direction="right" delay={0.3} className="md:col-span-7 lg:col-span-8">
+                <ScrollAnimation
+                  direction="right"
+                  delay={0.3}
+                  className="md:col-span-7 lg:col-span-8"
+                >
                   <motion.h2
                     className="text-base sm:text-xl mb-2 sm:mb-4"
                     initial={{ opacity: 0, y: 20 }}
@@ -152,10 +162,13 @@ export default function HomePage() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 1 }}
                   >
-                    Aspiring full-stack developer with expertise in ASP.NET Core, C#, React, JavaScript, and database
-                    management (MS SQL, PostgreSQL). Passionate about building scalable web applications and
-                    continuously improving my technical skills. Actively contributing to personal projects and
-                    open-source platforms to grow as a professional in the software development field.
+                    Aspiring full-stack developer with expertise in ASP.NET
+                    Core, C#, React, JavaScript, and database management (MS
+                    SQL, PostgreSQL). Passionate about building scalable web
+                    applications and continuously improving my technical skills.
+                    Actively contributing to personal projects and open-source
+                    platforms to grow as a professional in the software
+                    development field.
                   </motion.p>
 
                   <motion.div
@@ -185,6 +198,5 @@ export default function HomePage() {
         </div>
       </PageTransition>
     </PageSkeleton>
-  )
+  );
 }
-
