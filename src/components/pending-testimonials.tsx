@@ -1,0 +1,201 @@
+import type React from "react";
+
+import { Star, CheckCircle, XCircle } from "lucide-react";
+import type { PendingTestimonial } from "@/types/data-types";
+
+interface PendingTestimonialsProps {
+  pendingTestimonials: PendingTestimonial[];
+  handleApproveTestimonial: (id: string) => Promise<void>;
+  handleDeleteClick: (
+    id: string,
+    type: "project" | "testimonial" | "pendingTestimonial",
+    name: string
+  ) => void;
+}
+
+export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
+  pendingTestimonials,
+  handleApproveTestimonial,
+  handleDeleteClick,
+}) => {
+  if (pendingTestimonials.length === 0) {
+    return (
+      <div className="glass-card rounded-xl p-8 text-center">
+        <h3 className="text-xl font-semibold mb-2">No pending reviews</h3>
+        <p className="text-gray-400">All testimonials have been reviewed.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-card rounded-xl overflow-hidden">
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-black/50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                Client
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                Content
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                Rating
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-800">
+            {pendingTestimonials.map((testimonial) => (
+              <tr key={testimonial.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    {testimonial.avatar ? (
+                      <img
+                        src={testimonial.avatar || "/placeholder.svg"}
+                        alt={testimonial.name}
+                        className="w-10 h-10 rounded-full object-cover mr-3"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "/placeholder.svg";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                        <span className="text-primary font-semibold">
+                          {testimonial.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-medium">{testimonial.name}</div>
+                      <div className="text-sm text-gray-400">
+                        {testimonial.position}, {testimonial.company}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-300 truncate max-w-xs">
+                    {testimonial.content}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={16}
+                        className={
+                          i < testimonial.rating
+                            ? "text-yellow-400 fill-yellow-400"
+                            : "text-gray-500"
+                        }
+                      />
+                    ))}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <button
+                    className="text-green-400 hover:text-green-300 mr-3"
+                    onClick={() => handleApproveTestimonial(testimonial.id)}
+                  >
+                    <CheckCircle size={18} />
+                  </button>
+                  <button
+                    className="text-red-400 hover:text-red-300"
+                    onClick={() =>
+                      handleDeleteClick(
+                        testimonial.id,
+                        "pendingTestimonial",
+                        testimonial.name
+                      )
+                    }
+                  >
+                    <XCircle size={18} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="md:hidden space-y-4 p-4">
+        {pendingTestimonials.map((testimonial) => (
+          <div
+            key={testimonial.id}
+            className="bg-black/30 rounded-lg p-4 border-l-4 border-red-500"
+          >
+            <div className="flex items-center mb-3">
+              {testimonial.avatar ? (
+                <img
+                  src={testimonial.avatar || "/placeholder.svg"}
+                  alt={testimonial.name}
+                  className="w-12 h-12 rounded-full object-cover mr-3"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-3">
+                  <span className="text-primary font-semibold text-lg">
+                    {testimonial.name.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <div>
+                <h3 className="font-medium">{testimonial.name}</h3>
+                <p className="text-sm text-gray-400">
+                  {testimonial.position}, {testimonial.company}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-300 mb-3 line-clamp-3">
+              {testimonial.content}
+            </p>
+
+            <div className="flex justify-between items-center">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    size={16}
+                    className={
+                      i < testimonial.rating
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-500"
+                    }
+                  />
+                ))}
+              </div>
+              <div className="flex">
+                <button
+                  className="text-green-400 hover:text-green-300 mr-3 p-1"
+                  onClick={() => handleApproveTestimonial(testimonial.id)}
+                >
+                  <CheckCircle size={18} />
+                </button>
+                <button
+                  className="text-red-400 hover:text-red-300 p-1"
+                  onClick={() =>
+                    handleDeleteClick(
+                      testimonial.id,
+                      "pendingTestimonial",
+                      testimonial.name
+                    )
+                  }
+                >
+                  <XCircle size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

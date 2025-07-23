@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -44,6 +42,7 @@ import { Upload, Download } from "lucide-react";
 import { DataFileGuide } from "@/components/data-file-guide";
 import { CodeExportDialog } from "@/components/code-export-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { PendingTestimonials } from "@/components/pending-testimonials";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -212,7 +211,7 @@ export default function AdminDashboard() {
         const data = JSON.parse(event.target?.result as string);
 
         if (!data.projects || !data.testimonials) {
-          setImportError("Invalid JSON structure."); 
+          setImportError("Invalid JSON structure.");
           return;
         }
 
@@ -233,9 +232,7 @@ export default function AdminDashboard() {
         }, 1500);
       } catch (error) {
         console.error("Error parsing JSON:", error);
-        setImportError(
-          "JSON parsing error. Please check the file format."
-        );
+        setImportError("JSON parsing error. Please check the file format.");
       }
     };
 
@@ -652,6 +649,24 @@ export const testimonials: Testimonial[] = ${JSON.stringify(
                 </div>
               </div>
               <DataFileGuide />
+              <DeleteConfirmDialog
+                isOpen={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+                onConfirm={handleConfirmDelete}
+                itemName={itemToDelete?.name || ""}
+                itemType={
+                  itemToDelete?.type === "pendingTestimonial"
+                    ? "testimonial"
+                    : itemToDelete?.type || "item"
+                }
+              />
+              {activeTab === "testimonials" && (
+                <PendingTestimonials
+                  pendingTestimonials={pendingTestimonials}
+                  handleApproveTestimonial={handleApproveTestimonial}
+                  handleDeleteClick={handleDeleteClick}
+                />
+              )}
             </motion.div>
           )}
 
