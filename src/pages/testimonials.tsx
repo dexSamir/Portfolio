@@ -36,7 +36,7 @@ export default function TestimonialsPage() {
   };
 
   if (loading) {
-    return <PageSkeleton />;
+    return <PageSkeleton children/>;
   }
 
   if (error) {

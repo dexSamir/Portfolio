@@ -19,3 +19,15 @@ export interface Testimonial {
   rating: number;
   createdAt: string;
 }
+
+export interface PendingTestimonial {
+  id: string;
+  name: string;
+  position: string;
+  company: string;
+  avatar?: string;
+  content: string;
+  rating: number;
+  createdAt: string;
+  status: "pending" | "approved" | "rejected";
+}

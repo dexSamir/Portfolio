@@ -62,12 +62,14 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const [formData, setFormData] = useState<
     Omit<Project, "createdAt"> & { _id?: string; createdAt?: string }
   >({
+    _id: "",
     name: "",
     description: "",
     image: "",
     technologies: [""],
     githubUrl: "",
     liveUrl: "",
+    createdAt: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);

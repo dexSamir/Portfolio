@@ -2,7 +2,7 @@ import type { Project } from "@/types/data-types";
 
 export const projects: Project[] = [
   {
-    title: "Admin Panel - 1",
+    name: "Admin Panel - 1",
     description:
       "I developed a modern and responsive admin panel using React and TypeScript. This project provides an intuitive and user-friendly interface for managing various data and settings efficiently.",
     image:
@@ -10,7 +10,7 @@ export const projects: Project[] = [
     technologies: ["React", "TypeScript", "Scss", "Material UI", "Recharts"],
     githubUrl: "https://github.com/dexSamir/Admin_Panel_Project",
     liveUrl: "https://samiradminpanel.netlify.app/",
-    id: "1743447896554",
+    _id: "1743447896554",
     createdAt: "2025-03-31T19:04:56.555Z",
   },
 ];

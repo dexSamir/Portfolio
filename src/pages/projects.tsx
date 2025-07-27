@@ -29,7 +29,7 @@ export default function ProjectsPage() {
   }, []);
 
   if (loading) {
-    return <PageSkeleton />;
+    return <PageSkeleton children/>;
   }
 
   if (error) {
