@@ -1,235 +1,121 @@
-import type { Project, Testimonial, PendingTestimonial } from "@/types/data-types"
-import { projects as initialProjects } from "@/data/projectdata"
-import { testimonials as initialTestimonials } from "@/data/testimonialdata"
-
-const PROJECTS_KEY = "projects"
-const TESTIMONIALS_KEY = "testimonials"
-const PENDING_TESTIMONIALS_KEY = "pendingTestimonials"
-
-const initializeLocalStorage = () => {
-  try {
-    if (!localStorage.getItem(PROJECTS_KEY)) {
-      localStorage.setItem(PROJECTS_KEY, JSON.stringify(initialProjects))
-    }
-
-    if (!localStorage.getItem(TESTIMONIALS_KEY)) {
-      localStorage.setItem(TESTIMONIALS_KEY, JSON.stringify(initialTestimonials))
-    }
-
-    if (!localStorage.getItem(PENDING_TESTIMONIALS_KEY)) {
-      localStorage.setItem(PENDING_TESTIMONIALS_KEY, JSON.stringify([]))
-    }
-  } catch (error) {
-    console.error("Error initializing local storage:", error)
-  }
-}
-
-initializeLocalStorage()
+import type { Project, Testimonial } from "@/types/data-types";
+import {
+  getProjects as apiGetProjects,
+  getTestimonials as apiGetTestimonials,
+  createProject as apiCreateProject,
+  updateProject as apiUpdateProject,
+  deleteProject as apiDeleteProject,
+  createTestimonial as apiCreateTestimonial,
+  deleteTestimonial as apiDeleteTestimonial,
+} from "@/services/apiService";
 
 export const getProjects = async (): Promise<Project[]> => {
   try {
-    const projectsJson = localStorage.getItem(PROJECTS_KEY)
-    return projectsJson ? JSON.parse(projectsJson) : []
+    return await apiGetProjects();
   } catch (error) {
-    console.error("Error getting projects from local storage:", error)
-    return []
+    console.error("Error getting projects from API:", error);
+    return [];
   }
-}
+};
 
 export const getTestimonials = async (): Promise<Testimonial[]> => {
   try {
-    const testimonialsJson = localStorage.getItem(TESTIMONIALS_KEY)
-    return testimonialsJson ? JSON.parse(testimonialsJson) : []
+    return await apiGetTestimonials();
   } catch (error) {
-    console.error("Error getting testimonials from local storage:", error)
-    return []
+    console.error("Error getting testimonials from API:", error);
+    return [];
   }
-}
+};
 
-export const getPendingTestimonials = async (): Promise<PendingTestimonial[]> => {
+export const addProject = async (
+  project: Omit<Project, "_id" | "createdAt">
+): Promise<Project> => {
   try {
-    const pendingTestimonialsJson = localStorage.getItem(PENDING_TESTIMONIALS_KEY)
-    return pendingTestimonialsJson ? JSON.parse(pendingTestimonialsJson) : []
+    const newProject = await apiCreateProject(project);
+    await generateTypeScriptCode();
+    return newProject;
   } catch (error) {
-    console.error("Error getting pending testimonials from local storage:", error)
-    return []
+    console.error("Error adding project via API:", error);
+    throw error;
   }
-}
-
-export const addProject = async (project: Omit<Project, "id" | "createdAt">): Promise<Project> => {
-  try {
-    const projects = await getProjects()
-
-    const newProject: Project = {
-      ...project,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    }
-
-    const updatedProjects = [...projects, newProject]
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(updatedProjects))
-
-    await generateTypeScriptCode()
-
-    return newProject
-  } catch (error) {
-    console.error("Error adding project to local storage:", error)
-    throw error
-  }
-}
+};
 
 export const updateProject = async (project: Project): Promise<Project> => {
   try {
-    const projects = await getProjects()
-    const index = projects.findIndex((p) => p.id === project.id)
-
-    if (index === -1) {
-      throw new Error("Project not found")
-    }
-
-    const updatedProjects = [...projects]
-    updatedProjects[index] = project
-
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(updatedProjects))
-
-    await generateTypeScriptCode()
-
-    return project
+    const updatedProject = await apiUpdateProject(project._id, {
+      name: project.name,
+      description: project.description,
+      image: project.image,
+      technologies: project.technologies,
+      githubUrl: project.githubUrl,
+      liveUrl: project.liveUrl,
+    });
+    await generateTypeScriptCode();
+    return updatedProject;
   } catch (error) {
-    console.error("Error updating project in local storage:", error)
-    throw error
+    console.error("Error updating project via API:", error);
+    throw error;
   }
-}
+};
 
-export const addTestimonial = async (testimonial: Omit<Testimonial, "id" | "createdAt">): Promise<Testimonial> => {
+export const addTestimonial = async (
+  testimonial: Omit<Testimonial, "_id" | "createdAt">
+): Promise<Testimonial> => {
   try {
-    const testimonials = await getTestimonials()
-
-    const newTestimonial: Testimonial = {
-      ...testimonial,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    }
-
-    const updatedTestimonials = [...testimonials, newTestimonial]
-    localStorage.setItem(TESTIMONIALS_KEY, JSON.stringify(updatedTestimonials))
-
-    await generateTypeScriptCode()
-
-    return newTestimonial
+    const newTestimonial = await apiCreateTestimonial(testimonial);
+    await generateTypeScriptCode();
+    return newTestimonial;
   } catch (error) {
-    console.error("Error adding testimonial to local storage:", error)
-    throw error
+    console.error("Error adding testimonial via API:", error);
+    throw error;
   }
-}
-
-export const addPendingTestimonial = async (
-  testimonial: Omit<PendingTestimonial, "id" | "createdAt" | "status">,
-): Promise<PendingTestimonial> => {
-  try {
-    const pendingTestimonials = await getPendingTestimonials()
-
-    const newPendingTestimonial: PendingTestimonial = {
-      ...testimonial,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      status: "pending",
-    }
-
-    const updatedPendingTestimonials = [...pendingTestimonials, newPendingTestimonial]
-    localStorage.setItem(PENDING_TESTIMONIALS_KEY, JSON.stringify(updatedPendingTestimonials))
-
-    return newPendingTestimonial
-  } catch (error) {
-    console.error("Error adding pending testimonial to local storage:", error)
-    throw error
-  }
-}
-
-export const approveTestimonial = async (id: string): Promise<void> => {
-  try {
-    const pendingTestimonials = await getPendingTestimonials()
-    const testimonialToApprove = pendingTestimonials.find((t) => t.id === id)
-
-    if (!testimonialToApprove) {
-      throw new Error("Pending testimonial not found")
-    }
-
-    await addTestimonial({
-      name: testimonialToApprove.name,
-      position: testimonialToApprove.position,
-      company: testimonialToApprove.company,
-      avatar: testimonialToApprove.avatar,
-      content: testimonialToApprove.content,
-      rating: testimonialToApprove.rating,
-    })
-
-    const updatedPendingTestimonials = pendingTestimonials.filter((t) => t.id !== id)
-    localStorage.setItem(PENDING_TESTIMONIALS_KEY, JSON.stringify(updatedPendingTestimonials))
-  } catch (error) {
-    console.error("Error approving testimonial:", error)
-    throw error
-  }
-}
+};
 
 export const deleteProject = async (id: string): Promise<void> => {
   try {
-    const projects = await getProjects()
-    const updatedProjects = projects.filter((project) => project.id !== id)
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(updatedProjects))
-
-    await generateTypeScriptCode()
+    await apiDeleteProject(id);
+    await generateTypeScriptCode();
   } catch (error) {
-    console.error("Error deleting project from local storage:", error)
-    throw error
+    console.error("Error deleting project via API:", error);
+    throw error;
   }
-}
+};
 
 export const deleteTestimonial = async (id: string): Promise<void> => {
   try {
-    const testimonials = await getTestimonials()
-    const updatedTestimonials = testimonials.filter((testimonial) => testimonial.id !== id)
-    localStorage.setItem(TESTIMONIALS_KEY, JSON.stringify(updatedTestimonials))
-
-    await generateTypeScriptCode()
+    await apiDeleteTestimonial(id);
+    await generateTypeScriptCode();
   } catch (error) {
-    console.error("Error deleting testimonial from local storage:", error)
-    throw error
+    console.error("Error deleting testimonial via API:", error);
+    throw error;
   }
-}
-
-export const deletePendingTestimonial = async (id: string): Promise<void> => {
-  try {
-    const pendingTestimonials = await getPendingTestimonials()
-    const updatedPendingTestimonials = pendingTestimonials.filter((testimonial) => testimonial.id !== id)
-    localStorage.setItem(PENDING_TESTIMONIALS_KEY, JSON.stringify(updatedPendingTestimonials))
-  } catch (error) {
-    console.error("Error deleting pending testimonial from local storage:", error)
-    throw error
-  }
-}
+};
 
 const generateTypeScriptCode = async () => {
   try {
-    const projects = await getProjects()
-    const testimonials = await getTestimonials()
+    const projects = await getProjects();
+    const testimonials = await getTestimonials();
 
     const projectsCode = `import type { Project } from "@/types/data-types";
 
-export const projects: Project[] = ${JSON.stringify(projects, null, 2)};`
+export const projects: Project[] = ${JSON.stringify(projects, null, 2)};`;
 
     const testimonialsCode = `import type { Testimonial } from "@/types/data-types";
 
-export const testimonials: Testimonial[] = ${JSON.stringify(testimonials, null, 2)};`
+export const testimonials: Testimonial[] = ${JSON.stringify(
+      testimonials,
+      null,
+      2
+    )};`;
 
-    console.log("--- projectdata.ts ---")
-    console.log(projectsCode)
-    console.log("\n--- testimonialdata.ts ---")
-    console.log(testimonialsCode)
+    console.log("--- projectdata.ts ---");
+    console.log(projectsCode);
+    console.log("\n--- testimonialdata.ts ---");
+    console.log(testimonialsCode);
 
-    return { projectsCode, testimonialsCode }
+    return { projectsCode, testimonialsCode };
   } catch (error) {
-    console.error("Error generating TypeScript code:", error)
-    throw error
+    console.error("Error generating TypeScript code:", error);
+    throw error;
   }
-}
+};

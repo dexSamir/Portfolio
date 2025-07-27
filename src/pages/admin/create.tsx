@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
@@ -20,6 +18,7 @@ import {
   addTestimonial,
   updateProject,
 } from "@/services/localDataService";
+import { getProjectById } from "@/services/apiService";
 import type { Project } from "@/types/data-types";
 
 export default function AdminCreatePage() {
@@ -61,9 +60,9 @@ export default function AdminCreatePage() {
 const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<
-    Omit<Project, "id" | "createdAt"> & { id?: string; createdAt?: string }
+    Omit<Project, "createdAt"> & { _id?: string; createdAt?: string }
   >({
-    title: "",
+    name: "",
     description: "",
     image: "",
     technologies: [""],
@@ -93,6 +92,8 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     "GraphQL",
     "Redux",
     "Framer Motion",
+    "ASP.NET Core",
+    "C#",
   ]);
 
   useEffect(() => {
@@ -101,17 +102,31 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       if (editingProjectJson) {
         try {
           const editingProject = JSON.parse(editingProjectJson);
-          setFormData(editingProject);
+          const fetchProject = async () => {
+            try {
+              const projectData = await getProjectById(editingProject._id);
+              setFormData(projectData);
 
-          const newTechs = editingProject.technologies.filter(
-            (tech: string) => !availableTechs.includes(tech)
-          );
+              const newTechs = projectData.technologies.filter(
+                (tech: string) => !availableTechs.includes(tech)
+              );
 
-          if (newTechs.length > 0) {
-            setAvailableTechs((prev) => [...prev, ...newTechs]);
-          }
+              if (newTechs.length > 0) {
+                setAvailableTechs((prev) => [...prev, ...newTechs]);
+              }
+            } catch (err) {
+              console.error("Error fetching project for edit:", err);
+              setError(
+                "Failed to load project data for editing. Please try again."
+              );
+            }
+          };
+          fetchProject();
         } catch (error) {
-          console.error("Error parsing editing project:", error);
+          console.error(
+            "Error parsing editing project from local storage:",
+            error
+          );
           setError("Failed to load project data for editing");
         }
       }
@@ -160,7 +175,10 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     } else {
       setFormData((prev) => ({
         ...prev,
-        technologies: [...prev.technologies.filter((t) => t !== ""), tech],
+        technologies: [
+          ...prev.technologies.filter((t) => t.trim() !== ""),
+          tech,
+        ],
       }));
     }
     setError(null);
@@ -181,7 +199,10 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
     setFormData((prev) => ({
       ...prev,
-      technologies: [...prev.technologies.filter((t) => t !== ""), newTech],
+      technologies: [
+        ...prev.technologies.filter((t) => t.trim() !== ""),
+        newTech,
+      ],
     }));
 
     setNewTech("");
@@ -189,7 +210,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   };
 
   const validateForm = () => {
-    if (!formData.title.trim()) {
+    if (!formData.name.trim()) {
       setError("Project title is required");
       return false;
     }
@@ -220,10 +241,10 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     setSuccess(null);
 
     try {
-      if (isEdit && formData.id) {
+      if (isEdit && formData._id) {
         await updateProject({
-          id: formData.id,
-          title: formData.title,
+          _id: formData._id,
+          name: formData.name,
           description: formData.description,
           image: formData.image || undefined,
           technologies: formData.technologies.filter(
@@ -237,7 +258,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
         setSuccess("Project updated successfully!");
       } else {
         await addProject({
-          title: formData.title,
+          name: formData.name,
           description: formData.description,
           image: formData.image || undefined,
           technologies: formData.technologies.filter(
@@ -291,14 +312,15 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
+            <label htmlFor="name" className="block text-sm font-medium mb-2">
+              {" "}
               Project Title *
             </label>
             <input
               type="text"
-              id="title"
-              name="title"
-              value={formData.title}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
@@ -418,8 +440,9 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             <p className="text-xs text-gray-400 mt-2">
               Click on technologies to select/deselect them. Selected
               technologies:{" "}
-              {formData.technologies.filter((t) => t !== "").join(", ") ||
-                "None"}
+              {formData.technologies
+                .filter((t) => t.trim() !== "")
+                .join(", ") || "None"}
             </p>
           </div>
 

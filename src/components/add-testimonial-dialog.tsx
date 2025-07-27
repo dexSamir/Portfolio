@@ -1,18 +1,18 @@
-"use client"
+import type React from "react";
 
-import type React from "react"
-
-import { useState, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { X, Star, Send, Upload, AlertCircle, CheckCircle } from "lucide-react"
-import { addPendingTestimonial } from "@/services/localDataService"
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Star, Send, Upload, AlertCircle, CheckCircle } from "lucide-react";
 
 interface AddTestimonialDialogProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogProps) => {
+export const AddTestimonialDialog = ({
+  isOpen,
+  onClose,
+}: AddTestimonialDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
     position: "",
@@ -20,87 +20,85 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
     avatar: "",
     content: "",
     rating: 5,
-  })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setError(null)
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setError(null);
+  };
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      setError("File length must be less than 10MB")
-      return
+      setError("File length must be less than 10MB");
+      return;
     }
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        setFormData((prev) => ({ ...prev, avatar: event.target?.result as string }))
-        setError(null)
+        setFormData((prev) => ({
+          ...prev,
+          avatar: event.target?.result as string,
+        }));
+        setError(null);
       }
-    }
+    };
     reader.onerror = () => {
-      setError("The file could not be read")
-    }
-    reader.readAsDataURL(file)
-  }
+      setError("The file could not be read");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleRatingChange = (rating: number) => {
-    setFormData((prev) => ({ ...prev, rating }))
-  }
+    setFormData((prev) => ({ ...prev, rating }));
+  };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError("Name is required")
-      return false
+      setError("Name is required");
+      return false;
     }
     if (!formData.position.trim()) {
-      setError("Position is required")
-      return false
+      setError("Position is required");
+      return false;
     }
     if (!formData.company.trim()) {
-      setError("Company is required")
-      return false
+      setError("Company is required");
+      return false;
     }
     if (!formData.content.trim()) {
-      setError("Content is required")
-      return false
+      setError("Content is required");
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
-    setSuccess(null)
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
 
     try {
-      await addPendingTestimonial({
-        name: formData.name,
-        position: formData.position,
-        company: formData.company,
-        avatar: formData.avatar || undefined,
-        content: formData.content,
-        rating: formData.rating,
-      })
-
-      setSuccess("Your comment has been submitted successfully! It will be published once approved.")
+      setSuccess(
+        "Your comment has been submitted successfully! It will be published once approved."
+      );
 
       setTimeout(() => {
         setFormData({
@@ -110,22 +108,24 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
           avatar: "",
           content: "",
           rating: 5,
-        })
+        });
 
         setTimeout(() => {
-          onClose()
-          setSuccess(null)
-        }, 1500)
-      }, 2000)
+          onClose();
+          setSuccess(null);
+        }, 1500);
+      }, 2000);
     } catch (error) {
-      console.error("Error submitting testimonial:", error)
-      setError("An error occurred while submitting your comment. Please try again later.")
+      console.error("Error submitting testimonial:", error);
+      setError(
+        "An error occurred while submitting your comment. Please try again later."
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -151,7 +151,9 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
             <div className="relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"></div>
               <div className="p-6 flex items-start justify-between">
-                <h3 className="text-xl font-bold text-white">Add Testimonial</h3>
+                <h3 className="text-xl font-bold text-white">
+                  Add Testimonial
+                </h3>
                 <button
                   onClick={onClose}
                   className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-800"
@@ -179,7 +181,10 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Name *
                     </label>
                     <input
@@ -194,7 +199,10 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                     />
                   </div>
                   <div>
-                    <label htmlFor="avatar" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="avatar"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Profile Photo
                     </label>
                     <div className="flex gap-2">
@@ -229,10 +237,11 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                           alt="Avatar Preview"
                           className="w-full h-full object-cover rounded-full"
                           onError={(e) => {
-                            ;(e.target as HTMLImageElement).src = "/placeholder.svg"
+                            (e.target as HTMLImageElement).src =
+                              "/placeholder.svg";
                             setError(
-                              "The image could not be loaded. Please check the URL or upload a different image.",
-                            )
+                              "The image could not be loaded. Please check the URL or upload a different image."
+                            );
                           }}
                         />
                       </div>
@@ -242,7 +251,10 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="position" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="position"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Position *
                     </label>
                     <input
@@ -257,7 +269,10 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                     />
                   </div>
                   <div>
-                    <label htmlFor="company" className="block text-sm font-medium mb-2">
+                    <label
+                      htmlFor="company"
+                      className="block text-sm font-medium mb-2"
+                    >
                       Company *
                     </label>
                     <input
@@ -274,7 +289,10 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                 </div>
 
                 <div>
-                  <label htmlFor="content" className="block text-sm font-medium mb-2">
+                  <label
+                    htmlFor="content"
+                    className="block text-sm font-medium mb-2"
+                  >
                     Content *
                   </label>
                   <textarea
@@ -290,7 +308,9 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Evaluation *</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Evaluation *
+                  </label>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -301,7 +321,11 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
                       >
                         <Star
                           size={24}
-                          className={star <= formData.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-500"}
+                          className={
+                            star <= formData.rating
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-500"
+                          }
                         />
                       </button>
                     ))}
@@ -337,5 +361,5 @@ export const AddTestimonialDialog = ({ isOpen, onClose }: AddTestimonialDialogPr
         </div>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
