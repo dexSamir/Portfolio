@@ -1,35 +1,37 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Github, ExternalLink } from "lucide-react";
-import { PageTransition } from "@/components/page-transition";
-import { PageSkeleton } from "@/components/loading-skeleton";
-import { getProjects } from "@/services/localDataService";
-import type { Project } from "@/types/data-types";
+"use client"
+
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
+import { Github, ExternalLink } from "lucide-react"
+import { PageTransition } from "@/components/page-transition"
+import { PageSkeleton } from "@/components/loading-skeleton"
+import { getProjects } from "@/services/localDataService"
+import type { Project } from "@/types/data-types"
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const data = await getProjects();
-        setProjects(data);
+        const data = await getProjects()
+        setProjects(data)
       } catch (err) {
-        console.error("Failed to fetch projects:", err);
-        setError("Failed to load projects. Please try again later.");
+        console.error("Failed to fetch projects:", err)
+        setError("Failed to load projects. Please try again later.")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchProjects();
-  }, []);
+    fetchProjects()
+  }, [])
 
   if (loading) {
-    return <PageSkeleton children/>;
+    return <PageSkeleton children />
   }
 
   if (error) {
@@ -42,7 +44,7 @@ export default function ProjectsPage() {
           </div>
         </div>
       </PageTransition>
-    );
+    )
   }
 
   return (
@@ -77,31 +79,24 @@ export default function ProjectsPage() {
                   <div className="relative h-48 overflow-hidden">
                     <img
                       src={
-                        project.image ||
-                        "/placeholder.svg?height=192&width=384&query=abstract project image"
+                        project.image
+                          ? project.image
+                          : "/placeholder.svg?height=192&width=384&query=abstract project image"
                       }
                       alt={project.name}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/placeholder.svg?height=192&width=384";
+                        ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=192&width=384"
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                    <h3 className="absolute bottom-4 left-4 text-xl font-bold text-white">
-                      {project.name}
-                    </h3>
+                    <h3 className="absolute bottom-4 left-4 text-xl font-bold text-white">{project.name}</h3>
                   </div>
                   <div className="p-6">
-                    <p className="text-gray-300 text-sm mb-4 line-clamp-3">
-                      {project.description}
-                    </p>
+                    <p className="text-gray-300 text-sm mb-4 line-clamp-3">{project.description}</p>
                     <div className="flex flex-wrap gap-2 mb-4">
                       {project.technologies.map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-3 py-1 bg-primary/20 text-primary text-xs rounded-full"
-                        >
+                        <span key={tech} className="px-3 py-1 bg-primary/20 text-primary text-xs rounded-full">
                           {tech}
                         </span>
                       ))}
@@ -138,5 +133,5 @@ export default function ProjectsPage() {
         </div>
       </div>
     </PageTransition>
-  );
+  )
 }

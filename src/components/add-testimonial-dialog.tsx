@@ -1,17 +1,19 @@
 import type React from "react";
-
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, Send, Upload, AlertCircle, CheckCircle } from "lucide-react";
+import { addTestimonial } from "@/services/localDataService";
 
 interface AddTestimonialDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onTestimonialAdded: () => void;
 }
 
 export const AddTestimonialDialog = ({
   isOpen,
   onClose,
+  onTestimonialAdded,
 }: AddTestimonialDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -96,8 +98,18 @@ export const AddTestimonialDialog = ({
     setSuccess(null);
 
     try {
+      await addTestimonial({
+        name: formData.name,
+        position: formData.position,
+        company: formData.company,
+        avatar: formData.avatar || undefined,
+        content: formData.content,
+        rating: formData.rating,
+        status: "pending",
+      });
+
       setSuccess(
-        "Your comment has been submitted successfully! It will be published once approved."
+        "Your testimonial has been submitted successfully! It will be published once approved by an admin."
       );
 
       setTimeout(() => {
@@ -109,16 +121,14 @@ export const AddTestimonialDialog = ({
           content: "",
           rating: 5,
         });
-
-        setTimeout(() => {
-          onClose();
-          setSuccess(null);
-        }, 1500);
+        onTestimonialAdded();
+        onClose();
+        setSuccess(null);
       }, 2000);
     } catch (error) {
       console.error("Error submitting testimonial:", error);
       setError(
-        "An error occurred while submitting your comment. Please try again later."
+        "An error occurred while submitting your testimonial. Please try again later."
       );
     } finally {
       setIsSubmitting(false);

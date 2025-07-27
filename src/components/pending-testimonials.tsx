@@ -51,7 +51,7 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
             </thead>
             <tbody className="divide-y divide-gray-800">
               {pendingTestimonials.map((testimonial) => (
-                <tr key={testimonial.id}>
+                <tr key={testimonial._id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       {testimonial.avatar ? (
@@ -102,7 +102,7 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <button
                       className="text-green-400 hover:text-green-300 mr-3"
-                      onClick={() => handleApproveTestimonial(testimonial.id)}
+                      onClick={() => handleApproveTestimonial(testimonial._id)}
                     >
                       <CheckCircle size={18} />
                     </button>
@@ -110,7 +110,7 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                       className="text-red-400 hover:text-red-300"
                       onClick={() =>
                         handleDeleteClick(
-                          testimonial.id,
+                          testimonial._id,
                           "pendingTestimonial",
                           testimonial.name
                         )
@@ -128,7 +128,7 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
         <div className="md:hidden space-y-4 p-4">
           {pendingTestimonials.map((testimonial) => (
             <div
-              key={testimonial.id}
+              key={testimonial._id}
               className="bg-black/30 rounded-lg p-4 border-l-4 border-red-500"
             >
               <div className="flex items-center mb-3">
@@ -177,7 +177,7 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                 <div className="flex">
                   <button
                     className="text-green-400 hover:text-green-300 mr-3 p-1"
-                    onClick={() => handleApproveTestimonial(testimonial.id)}
+                    onClick={() => handleApproveTestimonial(testimonial._id)}
                   >
                     <CheckCircle size={18} />
                   </button>
@@ -185,7 +185,7 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                     className="text-red-400 hover:text-red-300 p-1"
                     onClick={() =>
                       handleDeleteClick(
-                        testimonial.id,
+                        testimonial._id,
                         "pendingTestimonial",
                         testimonial.name
                       )

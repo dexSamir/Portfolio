@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
@@ -606,9 +608,12 @@ const TestimonialForm = () => {
         avatar: formData.avatar || undefined,
         content: formData.content,
         rating: formData.rating,
+        status: "pending",
       });
 
-      setSuccess("Testimonial created successfully!");
+      setSuccess(
+        "Testimonial created successfully! It is awaiting admin approval."
+      );
 
       setTimeout(() => {
         navigate("/admin");
