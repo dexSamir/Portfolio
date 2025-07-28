@@ -1,7 +1,4 @@
-"use client";
-
 import type React from "react";
-
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";

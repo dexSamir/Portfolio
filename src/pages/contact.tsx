@@ -1,13 +1,11 @@
-"use client"
+import type React from "react";
 
-import type React from "react"
-
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { MapPin, Phone, Mail, Send, MessageSquare } from "lucide-react"
-import { PageTransition } from "../components/page-transition"
-import { ScrollAnimation } from "@/components/scroll-animation"
-import { PageSkeleton } from "@/components/loading-skeleton"
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { MapPin, Phone, Mail, Send, MessageSquare } from "lucide-react";
+import { PageTransition } from "../components/page-transition";
+import { ScrollAnimation } from "@/components/scroll-animation";
+import { PageSkeleton } from "@/components/loading-skeleton";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -15,27 +13,29 @@ export default function ContactPage() {
     email: "",
     subject: "",
     message: "",
-  })
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const message = `Name: ${formData.name}%0AEmail: ${formData.email}%0ASubject: ${formData.subject}%0AMessage: ${formData.message}`
+    const message = `Name: ${formData.name}%0AEmail: ${formData.email}%0ASubject: ${formData.subject}%0AMessage: ${formData.message}`;
 
-    window.open(`https://wa.me/994506229328?text=${message}`, "_blank")
+    window.open(`https://wa.me/994506229328?text=${message}`, "_blank");
 
     setFormData({
       name: "",
       email: "",
       subject: "",
       message: "",
-    })
-  }
+    });
+  };
 
   return (
     <PageSkeleton>
@@ -43,15 +43,21 @@ export default function ContactPage() {
         <div className="gradient-bg min-h-screen pt-24 pb-16 px-4">
           <div className="container mx-auto">
             <ScrollAnimation direction="up">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Me</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                Contact Me
+              </h1>
               <div className="h-1 w-20 bg-primary mb-8"></div>
               <p className="text-xl text-gray-300 mb-12 max-w-3xl">
-                Feel free to reach out to me for any questions, project inquiries, or just to say hello!
+                Feel free to reach out to me for any questions, project
+                inquiries, or just to say hello!
               </p>
             </ScrollAnimation>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <ScrollAnimation direction="left" className="lg:col-span-1 space-y-6">
+              <ScrollAnimation
+                direction="left"
+                className="lg:col-span-1 space-y-6"
+              >
                 <div className="glass-card rounded-xl p-6 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]">
                   <div className="flex items-start gap-4">
                     <div className="bg-primary/20 p-3 rounded-full">
@@ -121,11 +127,16 @@ export default function ContactPage() {
 
               <ScrollAnimation direction="right" className="lg:col-span-2">
                 <div className="glass-card rounded-xl p-8">
-                  <h2 className="text-2xl font-semibold mb-6">Send Me a Message</h2>
+                  <h2 className="text-2xl font-semibold mb-6">
+                    Send Me a Message
+                  </h2>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-medium mb-2">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium mb-2"
+                        >
                           Your Name
                         </label>
                         <input
@@ -140,7 +151,10 @@ export default function ContactPage() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="email" className="block text-sm font-medium mb-2">
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-medium mb-2"
+                        >
                           Your Email
                         </label>
                         <input
@@ -157,7 +171,10 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="subject" className="block text-sm font-medium mb-2">
+                      <label
+                        htmlFor="subject"
+                        className="block text-sm font-medium mb-2"
+                      >
                         Subject
                       </label>
                       <input
@@ -173,7 +190,10 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="message" className="block text-sm font-medium mb-2">
+                      <label
+                        htmlFor="message"
+                        className="block text-sm font-medium mb-2"
+                      >
                         Message
                       </label>
                       <textarea
@@ -204,6 +224,5 @@ export default function ContactPage() {
         </div>
       </PageTransition>
     </PageSkeleton>
-  )
+  );
 }
-

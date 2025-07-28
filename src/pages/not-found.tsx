@@ -1,5 +1,3 @@
-"use client"
-
 import { motion } from "framer-motion"
 import { Link } from "react-router-dom"
 import { AlertTriangle, Home, ArrowLeft } from "lucide-react"

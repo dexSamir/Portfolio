@@ -1,64 +1,68 @@
-"use client"
+import type React from "react";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Lock, User, Eye, EyeOff } from "lucide-react"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Lock, User, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setCredentials((prev) => ({ ...prev, [name]: value }))
-    setError("")
-  }
+    const { name, value } = e.target;
+    setCredentials((prev) => ({ ...prev, [name]: value }));
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const envUsername = import.meta.env.VITE_ADMIN_USERNAME
-      const envPassword = import.meta.env.VITE_ADMIN_PASSWORD
+      const envUsername = import.meta.env.VITE_ADMIN_USERNAME;
+      const envPassword = import.meta.env.VITE_ADMIN_PASSWORD;
 
       if (envUsername && envPassword) {
-        if (credentials.username === envUsername && credentials.password === envPassword) {
-          loginSuccess()
-          return
+        if (
+          credentials.username === envUsername &&
+          credentials.password === envPassword
+        ) {
+          loginSuccess();
+          return;
         }
       }
 
-      setError("Invalid username or password")
+      setError("Invalid username or password");
     } catch (err) {
-      setError("An error occurred. Please try again.")
-      console.error(err)
+      setError("An error occurred. Please try again.");
+      console.error(err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const loginSuccess = () => {
-    localStorage.setItem("auth_token", generateSecureToken())
-    localStorage.setItem("user", JSON.stringify({ name: "Admin", role: "admin" }))
+    localStorage.setItem("auth_token", generateSecureToken());
+    localStorage.setItem(
+      "user",
+      JSON.stringify({ name: "Admin", role: "admin" })
+    );
 
-    navigate("/admin")
-  }
+    navigate("/admin");
+  };
 
   const generateSecureToken = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2)
-  }
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  };
 
   return (
     <div className="gradient-bg min-h-screen flex items-center justify-center p-4">
@@ -78,7 +82,9 @@ export default function LoginPage() {
             <Lock className="text-primary" size={32} />
           </motion.div>
           <h1 className="text-3xl font-bold">Admin Login</h1>
-          <p className="text-gray-400 mt-2">Enter your credentials to access the admin panel</p>
+          <p className="text-gray-400 mt-2">
+            Enter your credentials to access the admin panel
+          </p>
         </div>
 
         {error && (
@@ -137,9 +143,15 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff className="text-gray-400 hover:text-gray-200" size={18} />
+                  <EyeOff
+                    className="text-gray-400 hover:text-gray-200"
+                    size={18}
+                  />
                 ) : (
-                  <Eye className="text-gray-400 hover:text-gray-200" size={18} />
+                  <Eye
+                    className="text-gray-400 hover:text-gray-200"
+                    size={18}
+                  />
                 )}
               </button>
             </div>
@@ -161,6 +173,5 @@ export default function LoginPage() {
         </form>
       </motion.div>
     </div>
-  )
+  );
 }
-

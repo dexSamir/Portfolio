@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Plus } from "lucide-react";
@@ -19,7 +17,6 @@ export default function TestimonialsPage() {
   const fetchTestimonials = async () => {
     try {
       const data = await getTestimonials();
-      // Filter to show only approved testimonials on the public page
       setTestimonials(data.filter((t) => t.status === "approved"));
     } catch (err) {
       console.error("Failed to fetch testimonials:", err);
@@ -35,7 +32,7 @@ export default function TestimonialsPage() {
 
   const handleTestimonialAdded = () => {
     setIsAddTestimonialDialogOpen(false);
-    fetchTestimonials(); // Re-fetch testimonials after one is added
+    fetchTestimonials();
   };
 
   if (loading) {
@@ -145,7 +142,7 @@ export default function TestimonialsPage() {
       <AddTestimonialDialog
         isOpen={isAddTestimonialDialogOpen}
         onClose={() => setIsAddTestimonialDialogOpen(false)}
-        onTestimonialAdded={handleTestimonialAdded} // Pass the new prop
+        onTestimonialAdded={handleTestimonialAdded}
       />
     </PageTransition>
   );

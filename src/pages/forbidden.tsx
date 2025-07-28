@@ -1,9 +1,7 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { Link } from "react-router-dom"
-import { ShieldAlert, Home } from "lucide-react"
-import { PageTransition } from "../components/page-transition"
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ShieldAlert, Home } from "lucide-react";
+import { PageTransition } from "../components/page-transition";
 
 export default function ForbiddenPage() {
   return (
@@ -28,7 +26,8 @@ export default function ForbiddenPage() {
           <h2 className="text-2xl font-semibold mb-4">Access Forbidden</h2>
 
           <p className="text-gray-300 mb-8">
-            You don't have permission to access this page. Please log in or contact the administrator.
+            You don't have permission to access this page. Please log in or
+            contact the administrator.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -51,6 +50,5 @@ export default function ForbiddenPage() {
         </motion.div>
       </div>
     </PageTransition>
-  )
+  );
 }
-

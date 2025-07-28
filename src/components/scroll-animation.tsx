@@ -1,18 +1,16 @@
-"use client"
+import { useEffect, useRef, type ReactNode } from "react";
+import { motion, useInView, useAnimation } from "framer-motion";
 
-import { useEffect, useRef, type ReactNode } from "react"
-import { motion, useInView, useAnimation } from "framer-motion"
-
-type FadeDirections = "up" | "down" | "left" | "right" | "none"
+type FadeDirections = "up" | "down" | "left" | "right" | "none";
 
 interface ScrollAnimationProps {
-  children: ReactNode
-  direction?: FadeDirections
-  delay?: number
-  duration?: number
-  threshold?: number
-  className?: string
-  once?: boolean
+  children: ReactNode;
+  direction?: FadeDirections;
+  delay?: number;
+  duration?: number;
+  threshold?: number;
+  className?: string;
+  once?: boolean;
 }
 
 const getVariants = (direction: FadeDirections) => {
@@ -22,13 +20,13 @@ const getVariants = (direction: FadeDirections) => {
       y: direction === "up" ? 50 : direction === "down" ? -50 : 0,
       x: direction === "left" ? 50 : direction === "right" ? -50 : 0,
     },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      x: 0 
+    visible: {
+      opacity: 1,
+      y: 0,
+      x: 0,
     },
-  }
-}
+  };
+};
 
 export const ScrollAnimation = ({
   children,
@@ -39,17 +37,17 @@ export const ScrollAnimation = ({
   className = "",
   once = true,
 }: ScrollAnimationProps) => {
-  const controls = useAnimation()
-  const ref = useRef(null)
-  const inView = useInView(ref, { amount: threshold, once })
+  const controls = useAnimation();
+  const ref = useRef(null);
+  const inView = useInView(ref, { amount: threshold, once });
 
   useEffect(() => {
     if (inView) {
-      controls.start("visible")
+      controls.start("visible");
     } else if (!once) {
-      controls.start("hidden")
+      controls.start("hidden");
     }
-  }, [controls, inView, once])
+  }, [controls, inView, once]);
 
   return (
     <motion.div
@@ -62,8 +60,8 @@ export const ScrollAnimation = ({
     >
       {children}
     </motion.div>
-  )
-}
+  );
+};
 
 export const StaggerContainer = ({
   children,
@@ -71,10 +69,10 @@ export const StaggerContainer = ({
   staggerDelay = 0.1,
   className = "",
 }: {
-  children: ReactNode
-  delay?: number
-  staggerDelay?: number
-  className?: string
+  children: ReactNode;
+  delay?: number;
+  staggerDelay?: number;
+  className?: string;
 }) => {
   return (
     <motion.div
@@ -95,15 +93,15 @@ export const StaggerContainer = ({
     >
       {children}
     </motion.div>
-  )
-}
+  );
+};
 
 export const StaggerItem = ({
   children,
   className = "",
 }: {
-  children: ReactNode
-  className?: string
+  children: ReactNode;
+  className?: string;
 }) => {
   return (
     <motion.div
@@ -122,5 +120,5 @@ export const StaggerItem = ({
     >
       {children}
     </motion.div>
-  )
-}
+  );
+};

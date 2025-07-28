@@ -1,33 +1,34 @@
-"use client"
-
-import { useEffect, useState, useRef } from "react"
-import { useTheme } from "./theme-provider"
-import { useMediaQuery } from "../hooks/use-media-query"
+import { useEffect, useState, useRef } from "react";
+import { useTheme } from "./theme-provider";
+import { useMediaQuery } from "../hooks/use-media-query";
 
 export const MouseTracker = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [dotPosition, setDotPosition] = useState({ x: 0, y: 0 })
-  const [isVisible, setIsVisible] = useState(false)
-  const [isHovering, setIsHovering] = useState(false)
-  const [, setHoverElement] = useState<HTMLElement | null>(null)
-  const dotRef = useRef<HTMLDivElement>(null)
-  const { theme } = useTheme()
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dotPosition, setDotPosition] = useState({ x: 0, y: 0 });
+  const [isVisible, setIsVisible] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const [, setHoverElement] = useState<HTMLElement | null>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
 
-  const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const lerp = (start: number, end: number, t: number) => {
-    return start * (1 - t) + end * t
-  }
+    return start * (1 - t) + end * t;
+  };
 
   useEffect(() => {
-    if (!isDesktop) return
+    if (!isDesktop) return;
 
-    let animationFrameId: number
+    let animationFrameId: number;
 
     const mouseMoveHandler = (event: MouseEvent) => {
-      setPosition({ x: event.clientX, y: event.clientY })
+      setPosition({ x: event.clientX, y: event.clientY });
 
-      const elementUnderCursor = document.elementFromPoint(event.clientX, event.clientY) as HTMLElement
+      const elementUnderCursor = document.elementFromPoint(
+        event.clientX,
+        event.clientY
+      ) as HTMLElement;
 
       if (elementUnderCursor) {
         if (
@@ -47,43 +48,43 @@ export const MouseTracker = () => {
           elementUnderCursor.closest("h3") ||
           elementUnderCursor.closest("span")
         ) {
-          setIsHovering(true)
-          setHoverElement(elementUnderCursor)
+          setIsHovering(true);
+          setHoverElement(elementUnderCursor);
         } else {
-          setIsHovering(false)
-          setHoverElement(null)
+          setIsHovering(false);
+          setHoverElement(null);
         }
       }
-    }
+    };
 
-    const mouseEnterHandler = () => setIsVisible(true)
-    const mouseLeaveHandler = () => setIsVisible(false)
+    const mouseEnterHandler = () => setIsVisible(true);
+    const mouseLeaveHandler = () => setIsVisible(false);
 
-    document.addEventListener("mousemove", mouseMoveHandler)
-    document.addEventListener("mouseenter", mouseEnterHandler)
-    document.addEventListener("mouseleave", mouseLeaveHandler)
+    document.addEventListener("mousemove", mouseMoveHandler);
+    document.addEventListener("mouseenter", mouseEnterHandler);
+    document.addEventListener("mouseleave", mouseLeaveHandler);
 
     const animate = () => {
       setDotPosition((prev) => ({
-        x: lerp(prev.x, position.x, 0.05),
-        y: lerp(prev.y, position.y, 0.05),
-      }))
-      animationFrameId = requestAnimationFrame(animate)
-    }
+        x: lerp(prev.x, position.x, 0.10),
+        y: lerp(prev.y, position.y, 0.10),
+      }));
+      animationFrameId = requestAnimationFrame(animate);
+    };
 
-    animate()
+    animate();
 
     return () => {
-      document.removeEventListener("mousemove", mouseMoveHandler)
-      document.removeEventListener("mouseenter", mouseEnterHandler)
-      document.removeEventListener("mouseleave", mouseLeaveHandler)
+      document.removeEventListener("mousemove", mouseMoveHandler);
+      document.removeEventListener("mouseenter", mouseEnterHandler);
+      document.removeEventListener("mouseleave", mouseLeaveHandler);
       if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId)
+        cancelAnimationFrame(animationFrameId);
       }
-    }
-  }, [position, isDesktop])
+    };
+  }, [position, isDesktop]);
 
-  if (typeof window === "undefined" || !isDesktop) return null
+  if (typeof window === "undefined" || !isDesktop) return null;
 
   return (
     <div
@@ -102,6 +103,5 @@ export const MouseTracker = () => {
         borderRadius: "50%",
       }}
     />
-  )
-}
-
+  );
+};

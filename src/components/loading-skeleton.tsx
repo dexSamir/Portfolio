@@ -1,12 +1,10 @@
-"use client"
-
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react";
 
 interface SkeletonProps {
-  height?: string
-  width?: string
-  borderRadius?: string
-  className?: string
+  height?: string;
+  width?: string;
+  borderRadius?: string;
+  className?: string;
 }
 
 export const Skeleton = ({
@@ -24,47 +22,47 @@ export const Skeleton = ({
         borderRadius,
       }}
     />
-  )
-}
+  );
+};
 
 export const PageSkeleton = ({ children }: { children: ReactNode }) => {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1500)
+      setIsLoading(false);
+    }, 1500);
 
-    return () => clearTimeout(timer)
-  }, [])
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isLoading) {
-    return <PageSkeletonContent />
+    return <PageSkeletonContent />;
   }
 
-  return <>{children}</>
-}
+  return <>{children}</>;
+};
 
 export const PageSkeletonContent = () => {
-  const [currentPath, setCurrentPath] = useState<string>("")
+  const [currentPath, setCurrentPath] = useState<string>("");
 
   useEffect(() => {
-    setCurrentPath(window.location.pathname)
-  }, [])
+    setCurrentPath(window.location.pathname);
+  }, []);
 
   switch (currentPath) {
     case "/projects":
-      return <ProjectsPageSkeleton />
+      return <ProjectsPageSkeleton />;
     case "/resume":
-      return <ResumePageSkeleton />
+      return <ResumePageSkeleton />;
     case "/contact":
-      return <ContactPageSkeleton />
+      return <ContactPageSkeleton />;
     case "/testimonials":
-      return <TestimonialsPageSkeleton />
+      return <TestimonialsPageSkeleton />;
     default:
-      return <HomePageSkeleton />
+      return <HomePageSkeleton />;
   }
-}
+};
 
 export const HomePageSkeleton = () => {
   return (
@@ -73,11 +71,20 @@ export const HomePageSkeleton = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
           <div className="md:col-span-5 lg:col-span-4 w-full max-w-sm mx-auto md:max-w-none">
             <div className="glass-card p-6 rounded-3xl">
-              <Skeleton height="300px" width="100%" className="rounded-3xl mb-6" />
+              <Skeleton
+                height="300px"
+                width="100%"
+                className="rounded-3xl mb-6"
+              />
 
               <div className="flex space-x-2 mb-6">
                 {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} height="40px" width="40px" borderRadius="9999px" />
+                  <Skeleton
+                    key={i}
+                    height="40px"
+                    width="40px"
+                    borderRadius="9999px"
+                  />
                 ))}
               </div>
 
@@ -111,8 +118,8 @@ export const HomePageSkeleton = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const ProjectsPageSkeleton = () => {
   return (
@@ -129,7 +136,12 @@ export const ProjectsPageSkeleton = () => {
               <Skeleton height="1rem" className="mb-4" />
               <div className="flex flex-wrap gap-2 mb-4">
                 {[...Array(3)].map((_, j) => (
-                  <Skeleton key={j} height="1.5rem" width="60px" borderRadius="9999px" />
+                  <Skeleton
+                    key={j}
+                    height="1.5rem"
+                    width="60px"
+                    borderRadius="9999px"
+                  />
                 ))}
               </div>
               <div className="flex justify-between">
@@ -141,8 +153,8 @@ export const ProjectsPageSkeleton = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const ResumePageSkeleton = () => {
   return (
@@ -242,7 +254,10 @@ export const ResumePageSkeleton = () => {
               </div>
 
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-start mb-4 p-4 bg-black/30 rounded-lg">
+                <div
+                  key={i}
+                  className="flex items-start mb-4 p-4 bg-black/30 rounded-lg"
+                >
                   <div className="flex-shrink-0 mt-1">
                     <div className="w-2.5 h-2.5 bg-primary rounded-full mr-3"></div>
                   </div>
@@ -254,8 +269,8 @@ export const ResumePageSkeleton = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const ContactPageSkeleton = () => {
   return (
@@ -268,7 +283,10 @@ export const ContactPageSkeleton = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-black/50 backdrop-blur-sm rounded-xl p-6">
+              <div
+                key={i}
+                className="bg-black/50 backdrop-blur-sm rounded-xl p-6"
+              >
                 <div className="flex items-start gap-4">
                   <Skeleton height="50px" width="50px" borderRadius="9999px" />
                   <div className="flex-1">
@@ -313,8 +331,8 @@ export const ContactPageSkeleton = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const TestimonialsPageSkeleton = () => {
   return (
@@ -326,7 +344,10 @@ export const TestimonialsPageSkeleton = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-black/50 backdrop-blur-sm rounded-xl p-6 h-full">
+            <div
+              key={i}
+              className="bg-black/50 backdrop-blur-sm rounded-xl p-6 h-full"
+            >
               <Skeleton height="40px" width="40px" className="mb-4" />
               <Skeleton height="1rem" width="100%" className="mb-2" />
               <Skeleton height="1rem" width="95%" className="mb-2" />
@@ -335,7 +356,12 @@ export const TestimonialsPageSkeleton = () => {
 
               <div className="flex mb-6">
                 {[...Array(5)].map((_, j) => (
-                  <Skeleton key={j} height="16px" width="16px" className="mr-1" />
+                  <Skeleton
+                    key={j}
+                    height="16px"
+                    width="16px"
+                    className="mr-1"
+                  />
                 ))}
               </div>
 
@@ -351,6 +377,5 @@ export const TestimonialsPageSkeleton = () => {
         </div>
       </div>
     </div>
-  )
-}
-
+  );
+};

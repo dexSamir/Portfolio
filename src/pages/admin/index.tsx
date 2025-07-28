@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
@@ -25,7 +23,7 @@ import {
   getTestimonials,
   deleteProject,
   deleteTestimonial,
-  approveTestimonial, // Import new function
+  approveTestimonial, 
 } from "@/services/localDataService"
 import type { Project, Testimonial, PendingTestimonial } from "@/types/data-types"
 import type React from "react"
@@ -33,7 +31,7 @@ import type React from "react"
 import { Upload, Download } from "lucide-react"
 import { DataFileGuide } from "@/components/data-file-guide"
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog"
-import { PendingTestimonials } from "@/components/pending-testimonials" // Import PendingTestimonials
+import { PendingTestimonials } from "@/components/pending-testimonials"
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -109,7 +107,7 @@ export default function AdminDashboard() {
         await deleteTestimonial(itemToDelete.id)
         setPendingTestimonials(pendingTestimonials.filter((testimonial) => testimonial._id !== itemToDelete.id))
       }
-      fetchData() // Re-fetch all data to ensure consistency
+      fetchData() 
     } catch (error) {
       console.error(`Error deleting ${itemToDelete.type}:`, error)
       alert(`Failed to delete ${itemToDelete.type}. Please try again.`)
@@ -122,7 +120,7 @@ export default function AdminDashboard() {
   const handleApproveTestimonial = async (id: string) => {
     try {
       await approveTestimonial(id)
-      fetchData() // Re-fetch all data to update lists
+      fetchData()
     } catch (error) {
       console.error("Error approving testimonial:", error)
       alert("Failed to approve testimonial. Please try again.")
@@ -142,7 +140,7 @@ export default function AdminDashboard() {
   const handleExportData = () => {
     const data = {
       projects,
-      testimonials: approvedTestimonials, // Only export approved testimonials
+      testimonials: approvedTestimonials,
     }
 
     const jsonData = JSON.stringify(data, null, 2)
@@ -175,8 +173,6 @@ export default function AdminDashboard() {
           return
         }
 
-        // Note: This import currently only updates local storage.
-        // For full backend integration, you would need to send this data to your API.
         localStorage.setItem("projects", JSON.stringify(data.projects))
         localStorage.setItem("testimonials", JSON.stringify(data.testimonials))
 
@@ -197,8 +193,6 @@ export default function AdminDashboard() {
 
     reader.readAsText(file)
   }
-
-  // Removed handleGenerateTypeScriptCode as per user request
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
@@ -737,6 +731,9 @@ export default function AdminDashboard() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                             Rating
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                            Status
+                          </th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                             Actions
                           </th>
@@ -785,6 +782,11 @@ export default function AdminDashboard() {
                                 ))}
                               </div>
                             </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-300">
+                                {testimonial.status.charAt(0).toUpperCase() + testimonial.status.slice(1)}
+                              </span>
+                            </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right">
                               <button className="text-blue-400 hover:text-blue-300 mr-3 opacity-50 cursor-not-allowed">
                                 <Edit size={18} />
@@ -829,6 +831,12 @@ export default function AdminDashboard() {
                         </div>
 
                         <p className="text-sm text-gray-300 mb-3 line-clamp-3">{testimonial.content}</p>
+
+                        <div className="mb-3">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-300">
+                            {testimonial.status.charAt(0).toUpperCase() + testimonial.status.slice(1)}
+                          </span>
+                        </div>
 
                         <div className="flex justify-between items-center">
                           <div className="flex">
