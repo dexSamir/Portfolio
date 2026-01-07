@@ -13,7 +13,7 @@ export default function ResumePage() {
 
     setTimeout(() => {
       const link = document.createElement("a");
-      link.href = "/resume.pdf";
+      link.href = "/imgs/resume/Samir_Habibov_CV.pdf";
       link.download = "samir-habibov-resume.pdf";
       document.body.appendChild(link);
       link.click();
