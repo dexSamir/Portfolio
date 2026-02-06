@@ -2,7 +2,7 @@ import type React from "react";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, Send, Upload, AlertCircle, CheckCircle } from "lucide-react";
-import { addTestimonial } from "@/services/localDataService";
+import { createTestimonial } from "@/services/apiService";
 
 interface AddTestimonialDialogProps {
   isOpen: boolean;
@@ -16,11 +16,12 @@ export const AddTestimonialDialog = ({
   onTestimonialAdded,
 }: AddTestimonialDialogProps) => {
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     position: "",
     company: "",
-    avatar: "",
-    content: "",
+    profileImage: null as File | null,
+    profileImagePreview: "",
+    message: "",
     rating: 5,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,7 +30,7 @@ export const AddTestimonialDialog = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -45,20 +46,12 @@ export const AddTestimonialDialog = ({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setFormData((prev) => ({
-          ...prev,
-          avatar: event.target?.result as string,
-        }));
-        setError(null);
-      }
-    };
-    reader.onerror = () => {
-      setError("The file could not be read");
-    };
-    reader.readAsDataURL(file);
+    setFormData((prev) => ({
+      ...prev,
+      profileImage: file,
+      profileImagePreview: URL.createObjectURL(file),
+    }));
+    setError(null);
   };
 
   const handleRatingChange = (rating: number) => {
@@ -66,7 +59,7 @@ export const AddTestimonialDialog = ({
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
+    if (!formData.fullName.trim()) {
       setError("Name is required");
       return false;
     }
@@ -78,8 +71,8 @@ export const AddTestimonialDialog = ({
       setError("Company is required");
       return false;
     }
-    if (!formData.content.trim()) {
-      setError("Content is required");
+    if (!formData.message.trim()) {
+      setError("Message is required");
       return false;
     }
 
@@ -98,27 +91,30 @@ export const AddTestimonialDialog = ({
     setSuccess(null);
 
     try {
-      await addTestimonial({
-        name: formData.name,
-        position: formData.position,
-        company: formData.company,
-        avatar: formData.avatar || undefined,
-        content: formData.content,
-        rating: formData.rating,
-        status: "pending",
-      });
+      const formDataObj = new FormData();
+      formDataObj.append("fullName", formData.fullName);
+      formDataObj.append("position", formData.position);
+      formDataObj.append("company", formData.company);
+      formDataObj.append("message", formData.message);
+      formDataObj.append("rating", String(formData.rating));
+      if (formData.profileImage) {
+        formDataObj.append("profileImage", formData.profileImage);
+      }
+
+      await createTestimonial(formDataObj);
 
       setSuccess(
-        "Your testimonial has been submitted successfully! It will be published once approved by an admin."
+        "Your testimonial has been submitted successfully! It will be published once approved by an admin.",
       );
 
       setTimeout(() => {
         setFormData({
-          name: "",
+          fullName: "",
           position: "",
           company: "",
-          avatar: "",
-          content: "",
+          profileImage: null,
+          profileImagePreview: "",
+          message: "",
           rating: 5,
         });
         onTestimonialAdded();
@@ -128,7 +124,7 @@ export const AddTestimonialDialog = ({
     } catch (error) {
       console.error("Error submitting testimonial:", error);
       setError(
-        "An error occurred while submitting your testimonial. Please try again later."
+        "An error occurred while submitting your testimonial. Please try again later.",
       );
     } finally {
       setIsSubmitting(false);
@@ -192,16 +188,16 @@ export const AddTestimonialDialog = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label
-                      htmlFor="name"
+                      htmlFor="fullName"
                       className="block text-sm font-medium mb-2"
                     >
                       Name *
                     </label>
                     <input
                       type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
@@ -210,47 +206,45 @@ export const AddTestimonialDialog = ({
                   </div>
                   <div>
                     <label
-                      htmlFor="avatar"
+                      htmlFor="profileImage"
                       className="block text-sm font-medium mb-2"
                     >
                       Profile Photo
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        id="avatar"
-                        name="avatar"
-                        value={formData.avatar}
-                        onChange={handleChange}
-                        className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                        placeholder="https://example.com/avatar.jpg"
-                      />
+                    <div className="flex gap-2 items-center">
                       <label
-                        htmlFor="avatar-upload"
+                        htmlFor="profileImage-upload"
                         className="p-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors cursor-pointer"
                       >
                         <Upload size={18} className="text-primary" />
                       </label>
                       <input
-                        id="avatar-upload"
+                        id="profileImage-upload"
                         type="file"
                         accept="image/*"
                         ref={fileInputRef}
                         onChange={handleAvatarUpload}
                         className="hidden"
                       />
+                      <span className="text-sm text-gray-400">
+                        {formData.profileImage
+                          ? formData.profileImage.name
+                          : "Choose image"}
+                      </span>
                     </div>
-                    {formData.avatar && (
+                    {formData.profileImagePreview && (
                       <div className="mt-2 relative w-10 h-10">
                         <img
-                          src={formData.avatar || "/placeholder.svg"}
+                          src={
+                            formData.profileImagePreview || "/placeholder.svg"
+                          }
                           alt="Avatar Preview"
                           className="w-full h-full object-cover rounded-full"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src =
                               "/placeholder.svg";
                             setError(
-                              "The image could not be loaded. Please check the URL or upload a different image."
+                              "The image could not be loaded. Please try uploading a different image.",
                             );
                           }}
                         />
@@ -300,15 +294,15 @@ export const AddTestimonialDialog = ({
 
                 <div>
                   <label
-                    htmlFor="content"
+                    htmlFor="message"
                     className="block text-sm font-medium mb-2"
                   >
-                    Content *
+                    Message *
                   </label>
                   <textarea
-                    id="content"
-                    name="content"
-                    value={formData.content}
+                    id="message"
+                    name="message"
+                    value={formData.message}
                     onChange={handleChange}
                     required
                     rows={4}

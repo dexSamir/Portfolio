@@ -60,6 +60,17 @@
   }
 }
 
+
+@layer base {
+  ::selection {
+    @apply bg-primary/50 text-foreground;
+  }
+  
+  ::-moz-selection {
+    @apply bg-primary/50 text-foreground;
+  }
+}
+
 .hover-element {
   cursor: none;
   position: relative;

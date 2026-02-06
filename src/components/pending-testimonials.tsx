@@ -1,11 +1,17 @@
-import type React from "react"
-import { Bell, CheckCircle, Star, XCircle } from "lucide-react"
-import type { PendingTestimonial } from "@/types/data-types"
+import type React from "react";
+import { Bell, CheckCircle, Star, XCircle } from "lucide-react";
+import { getTestimonialImageUrl } from "@/lib/image-utils";
+import { InitialsAvatar } from "@/components/initials-avatar";
+import { PendingTestimonial, mapTestimonialStatus } from "@/types/data-types";
 
 interface PendingTestimonialsProps {
-  pendingTestimonials: PendingTestimonial[]
-  handleApproveTestimonial: (id: string) => Promise<void>
-  handleDeleteClick: (id: string, type: "project" | "testimonial" | "pendingTestimonial", name: string) => void
+  pendingTestimonials: PendingTestimonial[];
+  handleApproveTestimonial: (id: string) => Promise<void>;
+  handleDeleteClick: (
+    id: string,
+    type: "project" | "testimonial" | "pendingTestimonial",
+    name: string,
+  ) => void;
 }
 
 export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
@@ -14,14 +20,16 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
   handleDeleteClick,
 }) => {
   if (pendingTestimonials.length === 0) {
-    return null
+    return null;
   }
 
   return (
     <div className="mb-8">
       <div className="flex items-center mb-4">
         <Bell className="text-red-400 mr-2" size={20} />
-        <h3 className="text-xl font-semibold">Pending Reviews ({pendingTestimonials.length})</h3>
+        <h3 className="text-xl font-semibold">
+          Pending Reviews ({pendingTestimonials.length})
+        </h3>
       </div>
 
       <div className="glass-card rounded-xl overflow-hidden border border-red-500/30">
@@ -48,25 +56,22 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
             </thead>
             <tbody className="divide-y divide-gray-800">
               {pendingTestimonials.map((testimonial) => (
-                <tr key={testimonial._id}>
+                <tr key={testimonial.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      {testimonial.avatar ? (
-                        <img
-                          src={testimonial.avatar || "/placeholder.svg"}
-                          alt={testimonial.name}
-                          className="w-10 h-10 rounded-full object-cover mr-3"
-                          onError={(e) => {
-                            ;(e.target as HTMLImageElement).src = "/placeholder.svg"
-                          }}
+                      <div className="mr-3">
+                        <InitialsAvatar
+                          name={testimonial.fullName}
+                          imageUrl={getTestimonialImageUrl(
+                            testimonial.profileImageUrl,
+                          )}
+                          size="sm"
                         />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                          <span className="text-primary font-semibold">{testimonial.name.charAt(0)}</span>
-                        </div>
-                      )}
+                      </div>
                       <div>
-                        <div className="font-medium">{testimonial.name}</div>
+                        <div className="font-medium">
+                          {testimonial.fullName}
+                        </div>
                         <div className="text-sm text-gray-400">
                           {testimonial.position}, {testimonial.company}
                         </div>
@@ -74,7 +79,9 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-300 truncate max-w-xs">{testimonial.content}</div>
+                    <div className="text-sm text-gray-300 truncate max-w-xs">
+                      {testimonial.message}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex">
@@ -82,34 +89,52 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                         <Star
                           key={i}
                           size={16}
-                          className={i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-500"}
+                          className={
+                            i < testimonial.rating
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-500"
+                          }
                         />
                       ))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        testimonial.status === "pending"
-                          ? "bg-yellow-500/20 text-yellow-300"
-                          : testimonial.status === "approved"
-                            ? "bg-green-500/20 text-green-300"
-                            : "bg-red-500/20 text-red-300"
-                      }`}
-                    >
-                      {testimonial.status.charAt(0).toUpperCase() + testimonial.status.slice(1)}
-                    </span>
+                    {(() => {
+                      const statusStr = mapTestimonialStatus(
+                        testimonial.status,
+                      );
+                      return (
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            statusStr === "pending"
+                              ? "bg-yellow-500/20 text-yellow-300"
+                              : statusStr === "approved"
+                                ? "bg-green-500/20 text-green-300"
+                                : "bg-red-500/20 text-red-300"
+                          }`}
+                        >
+                          {statusStr.charAt(0).toUpperCase() +
+                            statusStr.slice(1)}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <button
                       className="text-green-400 hover:text-green-300 mr-3"
-                      onClick={() => handleApproveTestimonial(testimonial._id)}
+                      onClick={() => handleApproveTestimonial(testimonial.id)}
                     >
                       <CheckCircle size={18} />
                     </button>
                     <button
                       className="text-red-400 hover:text-red-300"
-                      onClick={() => handleDeleteClick(testimonial._id, "pendingTestimonial", testimonial.name)}
+                      onClick={() =>
+                        handleDeleteClick(
+                          testimonial.id,
+                          "pendingTestimonial",
+                          testimonial.fullName,
+                        )
+                      }
                     >
                       <XCircle size={18} />
                     </button>
@@ -122,44 +147,49 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
 
         <div className="md:hidden space-y-4 p-4">
           {pendingTestimonials.map((testimonial) => (
-            <div key={testimonial._id} className="bg-black/30 rounded-lg p-4 border-l-4 border-red-500">
+            <div
+              key={testimonial.id}
+              className="bg-black/30 rounded-lg p-4 border-l-4 border-red-500"
+            >
               <div className="flex items-center mb-3">
-                {testimonial.avatar ? (
-                  <img
-                    src={testimonial.avatar || "/placeholder.svg"}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover mr-3"
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).src = "/placeholder.svg"
-                    }}
+                <div className="mr-3">
+                  <InitialsAvatar
+                    name={testimonial.fullName}
+                    imageUrl={getTestimonialImageUrl(
+                      testimonial.profileImageUrl,
+                    )}
+                    size="md"
                   />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                    <span className="text-primary font-semibold text-lg">{testimonial.name.charAt(0)}</span>
-                  </div>
-                )}
+                </div>
                 <div>
-                  <h3 className="font-medium">{testimonial.name}</h3>
+                  <h3 className="font-medium">{testimonial.fullName}</h3>
                   <p className="text-sm text-gray-400">
                     {testimonial.position}, {testimonial.company}
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-300 mb-3 line-clamp-3">{testimonial.content}</p>
+              <p className="text-sm text-gray-300 mb-3 line-clamp-3">
+                {testimonial.message}
+              </p>
 
               <div className="mb-3">
-                <span
-                  className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    testimonial.status === "pending"
-                      ? "bg-yellow-500/20 text-yellow-300"
-                      : testimonial.status === "approved"
-                        ? "bg-green-500/20 text-green-300"
-                        : "bg-red-500/20 text-red-300"
-                  }`}
-                >
-                  {testimonial.status.charAt(0).toUpperCase() + testimonial.status.slice(1)}
-                </span>
+                {(() => {
+                  const statusStr = mapTestimonialStatus(testimonial.status);
+                  return (
+                    <span
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        statusStr === "pending"
+                          ? "bg-yellow-500/20 text-yellow-300"
+                          : statusStr === "approved"
+                            ? "bg-green-500/20 text-green-300"
+                            : "bg-red-500/20 text-red-300"
+                      }`}
+                    >
+                      {statusStr.charAt(0).toUpperCase() + statusStr.slice(1)}
+                    </span>
+                  );
+                })()}
               </div>
 
               <div className="flex justify-between items-center">
@@ -168,20 +198,30 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                     <Star
                       key={i}
                       size={16}
-                      className={i < testimonial.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-500"}
+                      className={
+                        i < testimonial.rating
+                          ? "text-yellow-400 fill-yellow-400"
+                          : "text-gray-500"
+                      }
                     />
                   ))}
                 </div>
                 <div className="flex">
                   <button
                     className="text-green-400 hover:text-green-300 mr-3 p-1"
-                    onClick={() => handleApproveTestimonial(testimonial._id)}
+                    onClick={() => handleApproveTestimonial(testimonial.id)}
                   >
                     <CheckCircle size={18} />
                   </button>
                   <button
                     className="text-red-400 hover:text-red-300 p-1"
-                    onClick={() => handleDeleteClick(testimonial._id, "pendingTestimonial", testimonial.name)}
+                    onClick={() =>
+                      handleDeleteClick(
+                        testimonial.id,
+                        "pendingTestimonial",
+                        testimonial.fullName,
+                      )
+                    }
                   >
                     <XCircle size={18} />
                   </button>
@@ -192,5 +232,5 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

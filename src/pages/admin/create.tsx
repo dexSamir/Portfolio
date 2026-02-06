@@ -13,12 +13,19 @@ import {
 } from "lucide-react";
 import { AdminGuard } from "@/components/admin-guard";
 import {
-  addProject,
-  addTestimonial,
+  createProject,
   updateProject,
-} from "@/services/localDataService";
-import { getProjectById } from "@/services/apiService";
-import type { Project } from "@/types/data-types";
+  getProjectById,
+  getTechnologies,
+  createTechnology,
+  createTestimonial,
+} from "@/services/apiService";
+import type { Technology } from "@/types/data-types";
+
+
+// const _addTechnology = createTechnology;
+// const _addProject = createProject;
+// const _addTestimonial = createTestimonial;
 
 export default function AdminCreatePage() {
   const navigate = useNavigate();
@@ -58,46 +65,79 @@ export default function AdminCreatePage() {
 
 const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<
-    Omit<Project, "createdAt"> & { _id?: string; createdAt?: string }
-  >({
-    _id: "",
-    name: "",
+  const [formData, setFormData] = useState<{
+    id?: string;
+    title: string;
+    description: string;
+    imageUrl: string;
+    technologies: string[];
+    githubUrl: string;
+    liveUrl: string;
+    createdTime?: string;
+  }>({
+    id: "",
+    title: "",
     description: "",
-    image: "",
-    technologies: [""],
+    imageUrl: "",
+    technologies: [],
     githubUrl: "",
     liveUrl: "",
-    createdAt: "",
+    createdTime: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [newTech, setNewTech] = useState("");
-  const [availableTechs, setAvailableTechs] = useState([
-    "React",
-    "Next.js",
-    "TypeScript",
-    "JavaScript",
-    "HTML",
-    "CSS",
-    "Tailwind CSS",
-    "Node.js",
-    "Express",
-    "MongoDB",
-    "PostgreSQL",
-    "Firebase",
-    "AWS",
-    "Docker",
-    "GraphQL",
-    "Redux",
-    "Framer Motion",
-    "ASP.NET Core",
-    "C#",
-  ]);
+  const [availableTechs, setAvailableTechs] = useState<Technology[]>([]);
+  const [selectedTechIds, setSelectedTechIds] = useState<string[]>([]);
+  const [isLoadingTechs, setIsLoadingTechs] = useState(false);
+  const [newTechName, setNewTechName] = useState<string>("");
+  const [isAddingTech, setIsAddingTech] = useState(false);
+
+  const handleAddNewTechnology = async () => {
+    if (!newTechName.trim()) {
+      setError("Technology name is required");
+      return;
+    }
+
+    try {
+      setIsAddingTech(true);
+      // Call API to create new technology
+      const newTech = await createTechnology({ name: newTechName });
+
+      // Add to available techs
+      setAvailableTechs((prev) => [...prev, newTech]);
+
+      // Select the new technology
+      setSelectedTechIds((prev) => [...prev, newTech.id]);
+
+      // Clear input
+      setNewTechName("");
+      setError(null);
+    } catch (error) {
+      console.error("Error adding technology:", error);
+      setError("Failed to add new technology. Please try again.");
+    } finally {
+      setIsAddingTech(false);
+    }
+  };
 
   useEffect(() => {
+    const fetchTechnologies = async () => {
+      setIsLoadingTechs(true);
+      try {
+        const techs = await getTechnologies();
+        setAvailableTechs(techs);
+      } catch (err) {
+        console.error("Error fetching technologies:", err);
+        setError("Failed to load technologies from server");
+      } finally {
+        setIsLoadingTechs(false);
+      }
+    };
+
+    fetchTechnologies();
+
     if (isEdit) {
       const editingProjectJson = localStorage.getItem("editingProject");
       if (editingProjectJson) {
@@ -105,20 +145,22 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           const editingProject = JSON.parse(editingProjectJson);
           const fetchProject = async () => {
             try {
-              const projectData = await getProjectById(editingProject._id);
-              setFormData(projectData);
-
-              const newTechs = projectData.technologies.filter(
-                (tech: string) => !availableTechs.includes(tech)
-              );
-
-              if (newTechs.length > 0) {
-                setAvailableTechs((prev) => [...prev, ...newTechs]);
-              }
+              const projectData = await getProjectById(editingProject.id);
+              setFormData({
+                id: projectData.id,
+                title: projectData.title,
+                description: projectData.description,
+                imageUrl: projectData.imageUrl || "",
+                technologies: projectData.technologies.map((t) => t.id),
+                githubUrl: projectData.githubUrl || "",
+                liveUrl: projectData.liveUrl || "",
+                createdTime: projectData.createdTime,
+              });
+              setSelectedTechIds(projectData.technologies.map((t) => t.id));
             } catch (err) {
               console.error("Error fetching project for edit:", err);
               setError(
-                "Failed to load project data for editing. Please try again."
+                "Failed to load project data for editing. Please try again.",
               );
             }
           };
@@ -126,7 +168,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
         } catch (error) {
           console.error(
             "Error parsing editing project from local storage:",
-            error
+            error,
           );
           setError("Failed to load project data for editing");
         }
@@ -135,13 +177,15 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   }, [isEdit]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
 
+  const [projectImage, setProjectImage] = useState<File | null>(null);
+  const [projectImagePreview, setProjectImagePreview] = useState<string>("");
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -151,67 +195,28 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setFormData((prev) => ({
-          ...prev,
-          image: event.target?.result as string,
-        }));
-        setError(null);
-      }
-    };
-    reader.onerror = () => {
-      setError("Failed to read the file. Please try again.");
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleTechSelect = (tech: string) => {
-    if (formData.technologies.includes(tech)) {
-      setFormData((prev) => ({
-        ...prev,
-        technologies: prev.technologies.filter((t) => t !== tech),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        technologies: [
-          ...prev.technologies.filter((t) => t.trim() !== ""),
-          tech,
-        ],
-      }));
-    }
+    setProjectImage(file);
+    setFormData((prev) => ({
+      ...prev,
+      imageUrl: file.name,
+    }));
+    // Create preview URL for the image
+    const previewUrl = URL.createObjectURL(file);
+    setProjectImagePreview(previewUrl);
     setError(null);
   };
 
-  const addNewTechnology = () => {
-    if (!newTech.trim()) return;
-
-    if (
-      availableTechs.includes(newTech) ||
-      formData.technologies.includes(newTech)
-    ) {
-      setError("This technology already exists");
-      return;
+  const handleTechSelect = (techId: string) => {
+    if (selectedTechIds.includes(techId)) {
+      setSelectedTechIds((prev) => prev.filter((id) => id !== techId));
+    } else {
+      setSelectedTechIds((prev) => [...prev, techId]);
     }
-
-    setAvailableTechs((prev) => [...prev, newTech]);
-
-    setFormData((prev) => ({
-      ...prev,
-      technologies: [
-        ...prev.technologies.filter((t) => t.trim() !== ""),
-        newTech,
-      ],
-    }));
-
-    setNewTech("");
     setError(null);
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
+    if (!formData.title.trim()) {
       setError("Project title is required");
       return false;
     }
@@ -220,9 +225,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
       return false;
     }
 
-    if (
-      formData.technologies.filter((tech) => tech.trim() !== "").length === 0
-    ) {
+    if (selectedTechIds.length === 0) {
       setError("At least one technology must be selected");
       return false;
     }
@@ -242,33 +245,25 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     setSuccess(null);
 
     try {
-      if (isEdit && formData._id) {
-        await updateProject({
-          _id: formData._id,
-          name: formData.name,
-          description: formData.description,
-          image: formData.image || undefined,
-          technologies: formData.technologies.filter(
-            (tech) => tech.trim() !== ""
-          ),
-          githubUrl: formData.githubUrl || undefined,
-          liveUrl: formData.liveUrl || undefined,
-          createdAt: formData.createdAt || new Date().toISOString(),
-        });
+      const formDataObj = new FormData();
+      formDataObj.append("title", formData.title);
+      formDataObj.append("description", formData.description);
+      if (projectImage) {
+        formDataObj.append("imageUrl", projectImage);
+      }
+      formDataObj.append("githubUrl", formData.githubUrl || "");
+      formDataObj.append("liveUrl", formData.liveUrl || "");
 
+      // Append technology IDs
+      selectedTechIds.forEach((id) => {
+        formDataObj.append("technologyIds", id);
+      });
+
+      if (isEdit && formData.id) {
+        await updateProject(formData.id, formDataObj);
         setSuccess("Project updated successfully!");
       } else {
-        await addProject({
-          name: formData.name,
-          description: formData.description,
-          image: formData.image || undefined,
-          technologies: formData.technologies.filter(
-            (tech) => tech.trim() !== ""
-          ),
-          githubUrl: formData.githubUrl || undefined,
-          liveUrl: formData.liveUrl || undefined,
-        });
-
+        await createProject(formDataObj);
         setSuccess("Project created successfully!");
       }
 
@@ -280,10 +275,10 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     } catch (error) {
       console.error(
         `Error ${isEdit ? "updating" : "creating"} project:`,
-        error
+        error,
       );
       setError(
-        `Failed to ${isEdit ? "update" : "create"} project. Please try again.`
+        `Failed to ${isEdit ? "update" : "create"} project. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -313,15 +308,15 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-2">
+            <label htmlFor="title" className="block text-sm font-medium mb-2">
               {" "}
               Project Title *
             </label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="title"
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               required
               className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
@@ -349,15 +344,18 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
           </div>
 
           <div>
-            <label htmlFor="image" className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="imageUrl"
+              className="block text-sm font-medium mb-2"
+            >
               Image
             </label>
             <div className="flex gap-4 mb-2">
               <input
                 type="text"
-                id="image"
-                name="image"
-                value={formData.image}
+                id="imageUrl"
+                name="imageUrl"
+                value={formData.imageUrl}
                 onChange={handleChange}
                 className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                 placeholder="https://example.com/image.jpg"
@@ -381,16 +379,20 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             <p className="text-xs text-gray-400 mb-4">
               You can enter an image URL or upload an image from your computer.
             </p>
-            {formData.image && (
+            {(projectImagePreview || formData.imageUrl) && (
               <div className="mt-4 relative w-full max-w-xs">
                 <img
-                  src={formData.image || "/placeholder.svg"}
+                  src={
+                    projectImagePreview ||
+                    formData.imageUrl ||
+                    "/placeholder.svg"
+                  }
                   alt="Preview"
                   className="w-full h-48 object-cover rounded-lg"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = "/placeholder.svg";
                     setError(
-                      "Failed to load image. Please check the URL or upload another image."
+                      "Failed to load image. Please check the URL or upload another image.",
                     );
                   }}
                 />
@@ -400,50 +402,67 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Technologies *
+              Technologies *{" "}
+              {isLoadingTechs && (
+                <span className="text-gray-400">(Loading...)</span>
+              )}
             </label>
 
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={newTech}
-                onChange={(e) => setNewTech(e.target.value)}
-                className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="Add new technology..."
-              />
-              <button
-                type="button"
-                onClick={addNewTechnology}
-                className="flex items-center gap-2 px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors"
-              >
-                <Plus size={18} className="text-primary" />
-                <span>Add</span>
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-2">
-              {availableTechs.map((tech) => (
+            <div className="mb-4">
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={newTechName}
+                  onChange={(e) => setNewTechName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddNewTechnology();
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  placeholder="Add new technology..."
+                  disabled={isAddingTech}
+                />
                 <button
-                  key={tech}
                   type="button"
-                  onClick={() => handleTechSelect(tech)}
-                  className={`px-4 py-2 rounded-full text-sm transition-all ${
-                    formData.technologies.includes(tech)
-                      ? "bg-primary text-black font-medium"
-                      : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  }`}
+                  onClick={handleAddNewTechnology}
+                  disabled={isAddingTech || !newTechName.trim()}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-black font-medium rounded-lg transition-colors"
                 >
-                  {tech}
+                  <Plus size={18} />
+                  <span>Add</span>
                 </button>
-              ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {availableTechs.map((tech) => (
+                  <button
+                    key={tech.id}
+                    type="button"
+                    onClick={() => handleTechSelect(tech.id)}
+                    disabled={isLoadingTechs}
+                    className={`px-4 py-2 rounded-full text-sm transition-all ${
+                      selectedTechIds.includes(tech.id)
+                        ? "bg-primary text-black font-medium"
+                        : "bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+                    }`}
+                  >
+                    {tech.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <p className="text-xs text-gray-400 mt-2">
               Click on technologies to select/deselect them. Selected
               technologies:{" "}
-              {formData.technologies
-                .filter((t) => t.trim() !== "")
-                .join(", ") || "None"}
+              {selectedTechIds.length > 0
+                ? availableTechs
+                    .filter((t) => selectedTechIds.includes(t.id))
+                    .map((t) => t.name)
+                    .join(", ")
+                : "None"}
             </p>
           </div>
 
@@ -516,20 +535,22 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 const TestimonialForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     position: "",
     company: "",
-    avatar: "",
-    content: "",
+    message: "",
     rating: 5,
   });
+  const [testimonialImage, setTestimonialImage] = useState<File | null>(null);
+  const [testimonialImagePreview, setTestimonialImagePreview] =
+    useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -545,20 +566,10 @@ const TestimonialForm = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setFormData((prev) => ({
-          ...prev,
-          avatar: event.target?.result as string,
-        }));
-        setError(null);
-      }
-    };
-    reader.onerror = () => {
-      setError("Failed to read the file. Please try again.");
-    };
-    reader.readAsDataURL(file);
+    setTestimonialImage(file);
+    const previewUrl = URL.createObjectURL(file);
+    setTestimonialImagePreview(previewUrl);
+    setError(null);
   };
 
   const handleRatingChange = (rating: number) => {
@@ -566,7 +577,7 @@ const TestimonialForm = () => {
   };
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
+    if (!formData.fullName.trim()) {
       setError("Client name is required");
       return false;
     }
@@ -578,7 +589,7 @@ const TestimonialForm = () => {
       setError("Company is required");
       return false;
     }
-    if (!formData.content.trim()) {
+    if (!formData.message.trim()) {
       setError("Testimonial content is required");
       return false;
     }
@@ -598,18 +609,20 @@ const TestimonialForm = () => {
     setSuccess(null);
 
     try {
-      await addTestimonial({
-        name: formData.name,
-        position: formData.position,
-        company: formData.company,
-        avatar: formData.avatar || undefined,
-        content: formData.content,
-        rating: formData.rating,
-        status: "pending",
-      });
+      const formDataObj = new FormData();
+      formDataObj.append("fullName", formData.fullName);
+      formDataObj.append("position", formData.position);
+      formDataObj.append("company", formData.company);
+      formDataObj.append("message", formData.message);
+      formDataObj.append("rating", String(formData.rating));
+      if (testimonialImage) {
+        formDataObj.append("profileImage", testimonialImage);
+      }
+
+      await createTestimonial(formDataObj);
 
       setSuccess(
-        "Testimonial created successfully! It is awaiting admin approval."
+        "Testimonial created successfully! It is awaiting admin approval.",
       );
 
       setTimeout(() => {
@@ -647,14 +660,17 @@ const TestimonialForm = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2">
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-medium mb-2"
+              >
                 Client Name *
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="fullName"
+                name="fullName"
+                value={formData.fullName}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
@@ -663,21 +679,12 @@ const TestimonialForm = () => {
             </div>
             <div>
               <label
-                htmlFor="avatar"
+                htmlFor="profileImage"
                 className="block text-sm font-medium mb-2"
               >
                 Avatar
               </label>
               <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  id="avatar"
-                  name="avatar"
-                  value={formData.avatar}
-                  onChange={handleChange}
-                  className="flex-1 px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                  placeholder="https://example.com/avatar.jpg"
-                />
                 <label
                   htmlFor="avatar-upload"
                   className="p-2 bg-primary/20 hover:bg-primary/30 rounded-lg transition-colors cursor-pointer"
@@ -694,20 +701,16 @@ const TestimonialForm = () => {
                 />
               </div>
               <p className="text-xs text-gray-400 mb-4">
-                You can enter an avatar URL or upload an image from your
-                computer.
+                Upload your profile image.
               </p>
-              {formData.avatar && (
+              {(testimonialImagePreview || testimonialImage) && (
                 <div className="mt-2 relative w-16 h-16">
                   <img
-                    src={formData.avatar || "/placeholder.svg"}
+                    src={testimonialImagePreview || "/placeholder.svg"}
                     alt="Avatar Preview"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "/placeholder.svg";
-                      setError(
-                        "Failed to load avatar image. Please check the URL or upload another image."
-                      );
                     }}
                   />
                 </div>
@@ -755,13 +758,13 @@ const TestimonialForm = () => {
           </div>
 
           <div>
-            <label htmlFor="content" className="block text-sm font-medium mb-2">
+            <label htmlFor="message" className="block text-sm font-medium mb-2">
               Testimonial Content *
             </label>
             <textarea
-              id="content"
-              name="content"
-              value={formData.content}
+              id="message"
+              name="message"
+              value={formData.message}
               onChange={handleChange}
               required
               rows={5}

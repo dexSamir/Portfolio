@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, User, Eye, EyeOff } from "lucide-react";
+import { authService } from "@/services/authService";
 
 export default function LoginPage() {
   const [credentials, setCredentials] = useState({
-    username: "",
+    email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -28,40 +29,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const envUsername = import.meta.env.VITE_ADMIN_USERNAME;
-      const envPassword = import.meta.env.VITE_ADMIN_PASSWORD;
-
-      if (envUsername && envPassword) {
-        if (
-          credentials.username === envUsername &&
-          credentials.password === envPassword
-        ) {
-          loginSuccess();
-          return;
-        }
-      }
-
-      setError("Invalid username or password");
+      await authService.login(credentials.email, credentials.password);
+      navigate("/admin");
     } catch (err) {
-      setError("An error occurred. Please try again.");
-      console.error(err);
+      console.error("Login error:", err);
+      setError("Invalid email or password. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const loginSuccess = () => {
-    localStorage.setItem("auth_token", generateSecureToken());
-    localStorage.setItem(
-      "user",
-      JSON.stringify({ name: "Admin", role: "admin" })
-    );
-
-    navigate("/admin");
-  };
-
-  const generateSecureToken = () => {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   };
 
   return (
@@ -99,22 +74,22 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="username" className="block text-sm font-medium">
-              Username
+            <label htmlFor="email" className="block text-sm font-medium">
+              Email
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User className="text-gray-400" size={18} />
               </div>
               <input
-                type="text"
-                id="username"
-                name="username"
-                value={credentials.username}
+                type="email"
+                id="email"
+                name="email"
+                value={credentials.email}
                 onChange={handleChange}
                 required
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                placeholder="Enter your username"
+                placeholder="Enter your email"
               />
             </div>
           </div>

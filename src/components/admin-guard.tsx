@@ -2,6 +2,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { authService } from "@/services/authService";
 
 export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
@@ -9,9 +10,11 @@ export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
+    authService.initializeAuth();
+
+    const token = authService.getToken();
     if (!token) {
-      navigate("/403");
+      navigate("/login");
       return;
     }
 

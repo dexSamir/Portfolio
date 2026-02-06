@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { Github, ExternalLink } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
 import { PageSkeleton } from "@/components/loading-skeleton";
-import { getProjects } from "@/services/localDataService";
+import { getProjects } from "@/services/apiService";
+import { getProjectImageUrl } from "@/lib/image-utils";
 import type { Project } from "@/types/data-types";
 
 export default function ProjectsPage() {
@@ -67,7 +68,7 @@ export default function ProjectsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {projects.map((project, index) => (
                 <motion.div
-                  key={project._id}
+                  key={project.id}
                   className="glass-card rounded-xl overflow-hidden shadow-lg hover:shadow-primary/30 transition-all duration-300 border border-primary/10 hover:border-primary/30"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -77,11 +78,10 @@ export default function ProjectsPage() {
                   <div className="relative h-48 overflow-hidden">
                     <img
                       src={
-                        project.image
-                          ? project.image
-                          : "/placeholder.svg?height=192&width=384&query=abstract project image"
+                        getProjectImageUrl(project.imageUrl) ||
+                        "/placeholder.svg"
                       }
-                      alt={project.name}
+                      alt={project.title}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
@@ -90,7 +90,7 @@ export default function ProjectsPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                     <h3 className="absolute bottom-4 left-4 text-xl font-bold text-white">
-                      {project.name}
+                      {project.title}
                     </h3>
                   </div>
                   <div className="p-6">
@@ -100,10 +100,10 @@ export default function ProjectsPage() {
                     <div className="flex flex-wrap gap-2 mb-4">
                       {project.technologies.map((tech) => (
                         <span
-                          key={tech}
+                          key={tech.id}
                           className="px-3 py-1 bg-primary/20 text-primary text-xs rounded-full"
                         >
-                          {tech}
+                          {tech.name}
                         </span>
                       ))}
                     </div>

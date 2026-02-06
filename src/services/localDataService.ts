@@ -1,94 +1,136 @@
-import type { Project, Testimonial } from "@/types/data-types"
+import type { Project, Testimonial, Technology } from "@/types/data-types";
 import {
   getProjects as apiGetProjects,
-  getTestimonials as apiGetTestimonials,
+  getApprovedTestimonials,
+  getAllTestimonials,
+  getTestimonialsByStatus,
   createProject as apiCreateProject,
   updateProject as apiUpdateProject,
   deleteProject as apiDeleteProject,
   createTestimonial as apiCreateTestimonial,
   deleteTestimonial as apiDeleteTestimonial,
-  updateTestimonialStatus as apiUpdateTestimonialStatus,
-} from "@/services/apiService"
+  approveTestimonial as apiApproveTestimonial,
+  denyTestimonial as apiDenyTestimonial,
+  createTechnology as apiCreateTechnology,
+} from "@/services/apiService";
 
 export const getProjects = async (): Promise<Project[]> => {
   try {
-    return await apiGetProjects()
+    return await apiGetProjects();
   } catch (error) {
-    console.error("Error getting projects from API:", error)
-    return []
+    console.error("Error getting projects from API:", error);
+    return [];
   }
-}
+};
 
 export const getTestimonials = async (): Promise<Testimonial[]> => {
   try {
-    return await apiGetTestimonials()
+    return await getAllTestimonials();
   } catch (error) {
-    console.error("Error getting testimonials from API:", error)
-    return []
+    console.error("Error getting testimonials from API:", error);
+    return [];
   }
-}
+};
 
-export const addProject = async (project: Omit<Project, "_id" | "createdAt">): Promise<Project> => {
+export const getApprovedTestimonialsOnly = async (): Promise<Testimonial[]> => {
   try {
-    const newProject = await apiCreateProject(project)
-    return newProject
+    return await getApprovedTestimonials();
   } catch (error) {
-    console.error("Error adding project via API:", error)
-    throw error
+    console.error("Error getting approved testimonials from API:", error);
+    return [];
   }
-}
+};
 
-export const updateProject = async (project: Project): Promise<Project> => {
+export const getPendingTestimonials = async (): Promise<Testimonial[]> => {
   try {
-    const updatedProject = await apiUpdateProject(project._id, {
-      name: project.name,
-      description: project.description,
-      image: project.image,
-      technologies: project.technologies,
-      githubUrl: project.githubUrl,
-      liveUrl: project.liveUrl,
-    })
-    return updatedProject
+    return await getTestimonialsByStatus("pending");
   } catch (error) {
-    console.error("Error updating project via API:", error)
-    throw error
+    console.error("Error getting pending testimonials from API:", error);
+    return [];
   }
-}
+};
 
-export const addTestimonial = async (testimonial: Omit<Testimonial, "_id" | "createdAt">): Promise<Testimonial> => {
+export const addProject = async (formData: FormData): Promise<Project> => {
   try {
-    const newTestimonial = await apiCreateTestimonial(testimonial)
-    return newTestimonial
+    const newProject = await apiCreateProject(formData);
+    return newProject;
   } catch (error) {
-    console.error("Error adding testimonial via API:", error)
-    throw error
+    console.error("Error adding project via API:", error);
+    throw error;
   }
-}
+};
+
+export const updateProject = async (
+  id: string,
+  formData: FormData,
+): Promise<Project> => {
+  try {
+    const updatedProject = await apiUpdateProject(id, formData);
+    return updatedProject;
+  } catch (error) {
+    console.error("Error updating project via API:", error);
+    throw error;
+  }
+};
+
+export const addTestimonial = async (
+  formData: FormData,
+): Promise<Testimonial> => {
+  try {
+    const newTestimonial = await apiCreateTestimonial(formData);
+    return newTestimonial;
+  } catch (error) {
+    console.error("Error adding testimonial via API:", error);
+    throw error;
+  }
+};
 
 export const approveTestimonial = async (id: string): Promise<Testimonial> => {
   try {
-    const approvedTestimonial = await apiUpdateTestimonialStatus(id, "approved")
-    return approvedTestimonial
+    const approvedTestimonial = await apiApproveTestimonial(id);
+    return approvedTestimonial;
   } catch (error) {
-    console.error("Error approving testimonial via API:", error)
-    throw error
+    console.error("Error approving testimonial via API:", error);
+    throw error;
   }
-}
+};
+
+export const rejectTestimonial = async (id: string): Promise<Testimonial> => {
+  try {
+    const rejectedTestimonial = await apiDenyTestimonial(id);
+    return rejectedTestimonial;
+  } catch (error) {
+    console.error("Error rejecting testimonial via API:", error);
+    throw error;
+  }
+};
 
 export const deleteProject = async (id: string): Promise<void> => {
   try {
-    await apiDeleteProject(id)
+    await apiDeleteProject([id]);
   } catch (error) {
-    console.error("Error deleting project via API:", error)
-    throw error
+    console.error("Error deleting project via API:", error);
+    throw error;
   }
-}
+};
 
 export const deleteTestimonial = async (id: string): Promise<void> => {
   try {
-    await apiDeleteTestimonial(id)
+    await apiDeleteTestimonial(id);
   } catch (error) {
-    console.error("Error deleting testimonial via API:", error)
-    throw error
+    console.error("Error deleting testimonial via API:", error);
+    throw error;
   }
-}
+};
+
+export const addTechnology = async (technologyData: {
+  name: string;
+}): Promise<Technology> => {
+  try {
+    const newTechnology = await apiCreateTechnology(technologyData);
+    return newTechnology;
+  } catch (error) {
+    console.error("Error adding technology via API:", error);
+    throw error;
+  }
+};

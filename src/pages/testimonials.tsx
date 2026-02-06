@@ -4,7 +4,9 @@ import { Star, Plus } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
 import { PageSkeleton } from "@/components/loading-skeleton";
 import { AddTestimonialDialog } from "@/components/add-testimonial-dialog";
-import { getTestimonials } from "@/services/localDataService";
+import { getApprovedTestimonials } from "@/services/apiService";
+import { getTestimonialImageUrl } from "@/lib/image-utils";
+import { InitialsAvatar } from "@/components/initials-avatar";
 import type { Testimonial } from "@/types/data-types";
 import { ScrollAnimation } from "@/components/scroll-animation";
 
@@ -22,8 +24,8 @@ export default function TestimonialsPage() {
 
   const fetchTestimonials = async () => {
     try {
-      const data = await getTestimonials();
-      setTestimonials(data.filter((t) => t.status === "approved"));
+      const data = await getApprovedTestimonials();
+      setTestimonials(data);
     } catch (err) {
       console.error("Failed to fetch testimonials:", err);
       setError("Failed to load testimonials. Please try again later.");
@@ -95,7 +97,7 @@ export default function TestimonialsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
                 <motion.div
-                  key={testimonial._id}
+                  key={testimonial.id}
                   className="glass-card rounded-xl p-6 shadow-lg hover:shadow-primary/30 transition-all duration-300 border border-primary/10 hover:border-primary/30 flex flex-col"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -103,18 +105,18 @@ export default function TestimonialsPage() {
                   whileHover={{ scale: 1.02 }}
                 >
                   <div className="flex items-center mb-4">
-                    <img
-                      src={testimonial.avatar || "./imgs/default-avatar.jpg"}
-                      alt={testimonial.name}
-                      className="w-16 h-16 rounded-full object-cover mr-4 border-2 border-primary/50"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/placeholder.svg?height=64&width=64";
-                      }}
-                    />
+                    <div className="mr-4">
+                      <InitialsAvatar
+                        name={testimonial.fullName}
+                        imageUrl={getTestimonialImageUrl(
+                          testimonial.profileImageUrl,
+                        )}
+                        size="md"
+                      />
+                    </div>
                     <div>
                       <h3 className="text-xl font-semibold">
-                        {testimonial.name}
+                        {testimonial.fullName}
                       </h3>
                       <p className="text-gray-400 text-sm">
                         {testimonial.position}, {testimonial.company}
@@ -135,20 +137,17 @@ export default function TestimonialsPage() {
                     ))}
                   </div>
                   <p className="text-gray-300 flex-grow">
-                    {showFullContent[testimonial._id] ||
-                    testimonial.content.length <= MAX_CONTENT_LENGTH
-                      ? testimonial.content
-                      : `${testimonial.content.substring(
-                          0,
-                          MAX_CONTENT_LENGTH
-                        )}...`}
+                    {showFullContent[testimonial.id] ||
+                    testimonial.message.length <= MAX_CONTENT_LENGTH
+                      ? testimonial.message
+                      : `${testimonial.message.substring(0, MAX_CONTENT_LENGTH)}...`}
                   </p>
-                  {testimonial.content.length > MAX_CONTENT_LENGTH && (
+                  {testimonial.message.length > MAX_CONTENT_LENGTH && (
                     <button
-                      onClick={() => toggleShowFullContent(testimonial._id)}
+                      onClick={() => toggleShowFullContent(testimonial.id)}
                       className="text-primary hover:underline mt-2 self-start text-sm"
                     >
-                      {showFullContent[testimonial._id]
+                      {showFullContent[testimonial.id]
                         ? "Show Less"
                         : "Show More"}
                     </button>

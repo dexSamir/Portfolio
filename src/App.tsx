@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { MouseTracker } from "./components/mouse-tracker";
@@ -12,6 +13,7 @@ import AdminDashboard from "./pages/admin";
 import AdminCreatePage from "./pages/admin/create";
 import NotFoundPage from "./pages/not-found";
 import ForbiddenPage from "./pages/forbidden";
+import { authService } from "./services/authService";
 
 function App() {
   const location = useLocation();
@@ -20,14 +22,16 @@ function App() {
   const isErrorPage =
     location.pathname === "/404" || location.pathname === "/403";
 
+  useEffect(() => {
+    authService.initializeAuth();
+  }, []);
+
   return (
     <>
       {!isAdminRoute && !isLoginRoute && !isErrorPage && <MouseTracker />}
       {!isAdminRoute && !isLoginRoute && !isErrorPage && <Navigation />}
       <main
-        className={`relative ${
-          !isAdminRoute && !isLoginRoute && !isErrorPage ? "z-10" : ""
-        }`}
+        className={`relative ${!isAdminRoute && !isLoginRoute && !isErrorPage ? "z-10" : ""}`}
       >
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
