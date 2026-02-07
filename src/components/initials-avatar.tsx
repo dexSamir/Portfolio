@@ -12,7 +12,7 @@ export function InitialsAvatar({
   imageUrl,
   size = "md",
 }: InitialsAvatarProps) {
-  const [imgError, setImgError] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const sizeClasses = {
     sm: "w-10 h-10 text-xs",
@@ -26,25 +26,29 @@ export function InitialsAvatar({
     lg: "border-2",
   };
 
-  const initials = getInitials(name);
-  const bgColor = getAvatarColor(name);
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
-  if (!imageUrl || imgError) {
+  if (imageUrl && !imageError) {
     return (
-      <div
-        className={`${sizeClasses[size]} ${bgColor} rounded-full ${borderClasses[size]} border-primary/50 flex items-center justify-center font-bold text-white`}
-      >
-        {initials}
-      </div>
+      <img
+        src={imageUrl || "/placeholder.svg"}
+        alt={name}
+        className={`${sizeClasses[size]} rounded-full object-cover ${borderClasses[size]} border-primary/50`}
+        onError={handleImageError}
+      />
     );
   }
 
+  const initials = getInitials(name);
+  const bgColor = getAvatarColor(name);
+
   return (
-    <img
-      src={imageUrl}
-      alt={name}
-      className={`${sizeClasses[size]} rounded-full object-cover ${borderClasses[size]} border-primary/50`}
-      onError={() => setImgError(true)}
-    />
+    <div
+      className={`${sizeClasses[size]} ${bgColor} rounded-full ${borderClasses[size]} border-primary/50 flex items-center justify-center font-bold text-white`}
+    >
+      {initials}
+    </div>
   );
 }
