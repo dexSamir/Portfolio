@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Github, ExternalLink } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
-import { PageSkeleton } from "@/components/loading-skeleton";
+import { ProjectsPageSkeleton } from "@/components/loading-skeleton";
 import { getProjects } from "@/services/apiService";
 import { getProjectImageUrl } from "@/lib/image-utils";
 import type { Project } from "@/types/data-types";
@@ -12,12 +12,14 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getProjects();
-        setProjects(data);
+        const projectsData = await getProjects();
+        setProjects(projectsData);
+        setFilteredProjects(projectsData);
       } catch (err) {
         console.error("Failed to fetch projects:", err);
         setError("Failed to load projects. Please try again later.");
@@ -26,23 +28,21 @@ export default function ProjectsPage() {
       }
     };
 
-    fetchProjects();
+    fetchData();
   }, []);
 
   if (loading) {
-    return <PageSkeleton children />;
+    return <ProjectsPageSkeleton />;
   }
 
   if (error) {
     return (
-      <PageTransition>
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="text-center text-red-400">
-            <h2 className="text-2xl font-bold mb-4">Error Loading Projects</h2>
-            <p>{error}</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center text-red-400">
+          <h2 className="text-2xl font-bold mb-4">Error Loading Projects</h2>
+          <p>{error}</p>
         </div>
-      </PageTransition>
+      </div>
     );
   }
 
@@ -66,7 +66,7 @@ export default function ProjectsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {projects.map((project, index) => (
+              {filteredProjects.map((project, index) => (
                 <motion.div
                   key={project.id}
                   className="glass-card rounded-xl overflow-hidden shadow-lg hover:shadow-primary/30 transition-all duration-300 border border-primary/10 hover:border-primary/30"

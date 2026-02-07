@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Plus } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
-import { PageSkeleton } from "@/components/loading-skeleton";
+import { TestimonialsPageSkeleton } from "@/components/loading-skeleton";
 import { AddTestimonialDialog } from "@/components/add-testimonial-dialog";
 import { getApprovedTestimonials } from "@/services/apiService";
 import { getTestimonialImageUrl } from "@/lib/image-utils";
@@ -51,7 +51,7 @@ export default function TestimonialsPage() {
   };
 
   if (loading) {
-    return <PageSkeleton children />;
+    return <TestimonialsPageSkeleton />;
   }
 
   if (error) {
