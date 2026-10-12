@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { useMediaQuery } from "../hooks/use-media-query";
 
+const DOT_SIZE = 20;
+
 export const MouseTracker = () => {
   const dotRef = useRef<HTMLDivElement>(null);
   const enabled = useMediaQuery("(min-width: 1024px) and (pointer: fine) and (prefers-reduced-motion: no-preference)");
@@ -14,7 +16,8 @@ export const MouseTracker = () => {
     const animate = () => {
       x += (targetX - x) * 0.2;
       y += (targetY - y) * 0.2;
-      dot.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+      // Individual translate is applied before scale, so hover scaling cannot move the cursor center.
+      dot.style.translate = `${x - DOT_SIZE / 2}px ${y - DOT_SIZE / 2}px`;
       if (Math.abs(targetX - x) + Math.abs(targetY - y) > 0.1) {
         frame = requestAnimationFrame(animate);
       } else {
@@ -47,5 +50,5 @@ export const MouseTracker = () => {
     };
   }, [enabled]);
 
-  return enabled ? <div ref={dotRef} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[999] rounded-full bg-white mix-blend-difference" style={{ width: 20, height: 20, opacity: 0, transition: "opacity .2s, scale .2s" }} /> : null;
+  return enabled ? <div ref={dotRef} aria-hidden="true" className="pointer-events-none fixed left-0 top-0 z-[999] rounded-full bg-white mix-blend-difference" style={{ width: DOT_SIZE, height: DOT_SIZE, opacity: 0, transition: "opacity .2s, scale .2s" }} /> : null;
 };
