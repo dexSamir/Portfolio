@@ -1,3 +1,5 @@
+import { safeExternalUrl, validateImage } from "@/lib/safe-url";
+import { getProjectImageUrl } from "@/lib/image-utils";
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -31,7 +33,7 @@ export default function AdminCreatePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const type = searchParams.get("type") || "project";
+  const type = searchParams.get("type") === "testimonial" ? "testimonial" : "project";
   const isEdit = searchParams.get("edit") === "true";
 
   return (
@@ -87,6 +89,8 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [availableTechs, setAvailableTechs] = useState<Technology[]>([]);
   const [selectedTechIds, setSelectedTechIds] = useState<string[]>([]);
@@ -139,7 +143,9 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     fetchTechnologies();
 
     if (isEdit) {
-      const editingProjectJson = localStorage.getItem("editingProject");
+      const editId = new URLSearchParams(window.location.search).get("id");
+      const editingProjectJson = editId ? JSON.stringify({id:editId}) : null;
+      if (!editId) setError("No project selected. Return to the dashboard and select Edit.");
       if (editingProjectJson) {
         try {
           const editingProject = JSON.parse(editingProjectJson);
@@ -150,7 +156,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                 id: projectData.id,
                 title: projectData.title,
                 description: projectData.description,
-                imageUrl: projectData.imageUrl || "",
+                imageUrl: getProjectImageUrl(projectData.imageUrl),
                 technologies: projectData.technologies.map((t) => t.id),
                 githubUrl: projectData.githubUrl || "",
                 liveUrl: projectData.liveUrl || "",
@@ -186,12 +192,14 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
   const [projectImage, setProjectImage] = useState<File | null>(null);
   const [projectImagePreview, setProjectImagePreview] = useState<string>("");
+  useEffect(() => () => { if (projectImagePreview) URL.revokeObjectURL(projectImagePreview); }, [projectImagePreview]);
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 10MB.");
+    const imageError = validateImage(file);
+    if (imageError) {
+      setError(imageError);
       return;
     }
 
@@ -216,6 +224,8 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   };
 
   const validateForm = () => {
+    if (isEdit && !formData.id) { setError("Load an existing project before saving."); return false; }
+    if ([formData.githubUrl, formData.liveUrl].some(url => url && !safeExternalUrl(url))) { setError("Project links must be valid HTTPS URLs."); return false; }
     if (!formData.title.trim()) {
       setError("Project title is required");
       return false;
@@ -236,7 +246,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (isSubmitting || success || !validateForm()) {
       return;
     }
 
@@ -269,7 +279,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
 
       localStorage.removeItem("editingProject");
 
-      setTimeout(() => {
+      redirectTimer.current = setTimeout(() => {
         navigate("/admin");
       }, 1500);
     } catch (error) {
@@ -293,14 +303,14 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
     >
       <div className="glass-card rounded-xl p-6 sm:p-8">
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div role="alert" className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
             <AlertCircle size={18} className="mr-2 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div role="status" className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
             <CheckCircle size={18} className="mr-2 flex-shrink-0" />
             <span>{success}</span>
           </div>
@@ -370,10 +380,10 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
               <input
                 id="file-upload"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                 ref={fileInputRef}
                 onChange={handleFileUpload}
-                className="hidden"
+                className="sr-only"
               />
             </div>
             <p className="text-xs text-gray-400 mb-4">
@@ -390,7 +400,8 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
                   alt="Preview"
                   className="w-full h-48 object-cover rounded-lg"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/placeholder.svg";
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/placeholder.svg";
                     setError(
                       "Failed to load image. Please check the URL or upload another image.",
                     );
@@ -412,7 +423,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
               <div className="flex gap-2 mb-4">
                 <input
                   type="text"
-                  value={newTechName}
+                  aria-label="New technology name" value={newTechName}
                   onChange={(e) => setNewTechName(e.target.value)}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
@@ -513,7 +524,7 @@ const ProjectForm = ({ isEdit = false }: { isEdit?: boolean }) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!success}
               className="flex items-center gap-2 px-6 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
             >
               {isSubmitting ? (
@@ -547,8 +558,11 @@ const TestimonialForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(redirectTimer.current), []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => () => { if (testimonialImagePreview) URL.revokeObjectURL(testimonialImagePreview); }, [testimonialImagePreview]);
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -561,8 +575,9 @@ const TestimonialForm = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 10MB.");
+    const imageError = validateImage(file);
+    if (imageError) {
+      setError(imageError);
       return;
     }
 
@@ -600,7 +615,7 @@ const TestimonialForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (isSubmitting || success || !validateForm()) {
       return;
     }
 
@@ -625,7 +640,7 @@ const TestimonialForm = () => {
         "Testimonial created successfully! It is awaiting admin approval.",
       );
 
-      setTimeout(() => {
+      redirectTimer.current = setTimeout(() => {
         navigate("/admin");
       }, 1500);
     } catch (error) {
@@ -644,14 +659,14 @@ const TestimonialForm = () => {
     >
       <div className="glass-card rounded-xl p-6 sm:p-8">
         {error && (
-          <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div role="alert" className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
             <AlertCircle size={18} className="mr-2 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+          <div role="status" className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
             <CheckCircle size={18} className="mr-2 flex-shrink-0" />
             <span>{success}</span>
           </div>
@@ -679,7 +694,7 @@ const TestimonialForm = () => {
             </div>
             <div>
               <label
-                htmlFor="profileImage"
+                htmlFor="avatar-upload"
                 className="block text-sm font-medium mb-2"
               >
                 Avatar
@@ -694,10 +709,10 @@ const TestimonialForm = () => {
                 <input
                   id="avatar-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                   ref={fileInputRef}
                   onChange={handleAvatarUpload}
-                  className="hidden"
+                  className="sr-only"
                 />
               </div>
               <p className="text-xs text-gray-400 mb-4">
@@ -710,7 +725,8 @@ const TestimonialForm = () => {
                     alt="Avatar Preview"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/placeholder.svg";
+                      e.currentTarget.onerror = null;
+                    e.currentTarget.src = "/placeholder.svg";
                     }}
                   />
                 </div>
@@ -781,7 +797,7 @@ const TestimonialForm = () => {
                   key={star}
                   type="button"
                   onClick={() => handleRatingChange(star)}
-                  className="focus:outline-none"
+                  aria-label={`Rate ${star} out of 5`} aria-pressed={formData.rating === star} className="p-2"
                 >
                   <Star
                     size={24}
@@ -806,7 +822,7 @@ const TestimonialForm = () => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !!success}
               className="flex items-center gap-2 px-6 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
             >
               {isSubmitting ? (

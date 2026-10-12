@@ -1,6 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useRef } from "react"
+import { createPortal } from "react-dom"
+import { useModalAccessibility } from "@/hooks/use-modal-accessibility"
 import { motion, AnimatePresence } from "framer-motion"
 import { AlertTriangle, X } from "lucide-react"
 
@@ -14,27 +16,8 @@ interface DeleteConfirmDialogProps {
 
 export const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, itemName, itemType }: DeleteConfirmDialogProps) => {
 
-  useEffect(() => {
-    const handleEscapeKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        handleClose()
-      }
-    }
-
-    document.addEventListener("keydown", handleEscapeKey)
-    return () => document.removeEventListener("keydown", handleEscapeKey)
-  }, [isOpen])
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden"
-    } else {
-      document.body.style.overflow = "auto"
-    }
-    return () => {
-      document.body.style.overflow = "auto"
-    }
-  }, [isOpen])
+  const dialogRef = useRef<HTMLDivElement>(null)
+  useModalAccessibility(isOpen, dialogRef, onClose)
 
   const handleClose = () => {
     onClose()
@@ -46,7 +29,7 @@ export const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, itemName, item
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -64,6 +47,10 @@ export const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, itemName, item
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-title"
             className="bg-gray-900 border border-gray-800 rounded-xl shadow-xl w-full max-w-md relative z-10 overflow-hidden"
           >
             <div className="relative">
@@ -73,7 +60,7 @@ export const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, itemName, item
                   <AlertTriangle className="text-red-500" size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white mb-1">Confirm Deletion</h3>
+                  <h3 id="delete-title" className="text-xl font-bold text-white mb-1">Confirm Deletion</h3>
                   <p className="text-gray-300">
                     Are you sure you want to delete the {itemType}{" "}
                     <span className="font-semibold text-white">"{itemName}"</span>?
@@ -81,6 +68,7 @@ export const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, itemName, item
                 </div>
                 <button
                   onClick={handleClose}
+                  aria-label="Close confirmation"
                   className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-800"
                 >
                   <X size={20} />
@@ -115,7 +103,7 @@ export const DeleteConfirmDialog = ({ isOpen, onClose, onConfirm, itemName, item
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>, document.body
   )
 }
 

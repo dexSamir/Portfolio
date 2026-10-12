@@ -1,7 +1,11 @@
 import type React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, Send, Upload, AlertCircle, CheckCircle } from "lucide-react";
+import { createPortal } from "react-dom";
+import { useModalAccessibility } from "@/hooks/use-modal-accessibility";
+import { validateImage } from "@/lib/safe-url";
+import { errorMessage } from "@/services/http";
 import { createTestimonial } from "@/services/apiService";
 
 interface AddTestimonialDialogProps {
@@ -27,6 +31,11 @@ export const AddTestimonialDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useModalAccessibility(isOpen, dialogRef, () => { if (!isSubmitting) onClose(); });
+  useEffect(() => { if (!isOpen) { clearTimeout(timerRef.current); setSuccess(null); } return () => clearTimeout(timerRef.current); }, [isOpen]);
+  useEffect(() => () => { if (formData.profileImagePreview) URL.revokeObjectURL(formData.profileImagePreview); }, [formData.profileImagePreview]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
@@ -41,8 +50,9 @@ export const AddTestimonialDialog = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File length must be less than 10MB");
+    const imageError = validateImage(file);
+    if (imageError) {
+      setError(imageError);
       return;
     }
 
@@ -82,7 +92,7 @@ export const AddTestimonialDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
+    if (isSubmitting || success || !validateForm()) {
       return;
     }
 
@@ -107,7 +117,7 @@ export const AddTestimonialDialog = ({
         "Your testimonial has been submitted successfully! It will be published once approved by an admin.",
       );
 
-      setTimeout(() => {
+      timerRef.current = setTimeout(() => {
         setFormData({
           fullName: "",
           position: "",
@@ -122,10 +132,7 @@ export const AddTestimonialDialog = ({
         setSuccess(null);
       }, 2000);
     } catch (error) {
-      console.error("Error submitting testimonial:", error);
-      setError(
-        "An error occurred while submitting your testimonial. Please try again later.",
-      );
+      setError(errorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +140,7 @@ export const AddTestimonialDialog = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -143,7 +150,7 @@ export const AddTestimonialDialog = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={onClose}
+            onClick={() => { if (!isSubmitting) onClose(); }}
           />
 
           <motion.div
@@ -151,17 +158,22 @@ export const AddTestimonialDialog = ({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="bg-gray-900 border border-gray-800 rounded-xl shadow-xl w-full max-w-lg relative z-10 overflow-hidden"
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="testimonial-title"
+            className="max-h-[90dvh] overflow-y-auto bg-gray-900 border border-gray-800 rounded-xl shadow-xl w-full max-w-lg relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/50"></div>
               <div className="p-6 flex items-start justify-between">
-                <h3 className="text-xl font-bold text-white">
+                <h2 id="testimonial-title" className="text-xl font-bold text-white">
                   Add Testimonial
-                </h3>
+                </h2>
                 <button
-                  onClick={onClose}
+                  onClick={() => { if (!isSubmitting) onClose(); }}
+                  aria-label="Close testimonial form"
                   className="text-gray-400 hover:text-white transition-colors p-1 rounded-full hover:bg-gray-800"
                 >
                   <X size={20} />
@@ -171,14 +183,14 @@ export const AddTestimonialDialog = ({
 
             <div className="px-6 pb-6">
               {error && (
-                <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+                <div role="alert" className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6 flex items-center">
                   <AlertCircle size={18} className="mr-2 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
 
               {success && (
-                <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
+                <div role="status" className="bg-green-500/20 border border-green-500/50 text-green-200 px-4 py-3 rounded-lg mb-6 flex items-center">
                   <CheckCircle size={18} className="mr-2 flex-shrink-0" />
                   <span>{success}</span>
                 </div>
@@ -206,7 +218,7 @@ export const AddTestimonialDialog = ({
                   </div>
                   <div>
                     <label
-                      htmlFor="profileImage"
+                      htmlFor="profileImage-upload"
                       className="block text-sm font-medium mb-2"
                     >
                       Profile Photo
@@ -221,10 +233,10 @@ export const AddTestimonialDialog = ({
                       <input
                         id="profileImage-upload"
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
                         ref={fileInputRef}
                         onChange={handleAvatarUpload}
-                        className="hidden"
+                        className="sr-only"
                       />
                       <span className="text-sm text-gray-400">
                         {formData.profileImage
@@ -241,7 +253,8 @@ export const AddTestimonialDialog = ({
                           alt="Avatar Preview"
                           className="w-full h-full object-cover rounded-full"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src =
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src =
                               "/placeholder.svg";
                             setError(
                               "The image could not be loaded. Please try uploading a different image.",
@@ -321,7 +334,9 @@ export const AddTestimonialDialog = ({
                         key={star}
                         type="button"
                         onClick={() => handleRatingChange(star)}
-                        className="focus:outline-none"
+                        aria-label={`Rate ${star} out of 5`}
+                        aria-pressed={formData.rating === star}
+                        className="p-2"
                       >
                         <Star
                           size={24}
@@ -339,18 +354,18 @@ export const AddTestimonialDialog = ({
                 <div className="flex justify-end pt-4">
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={() => { if (!isSubmitting) onClose(); }}
                     className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors mr-4"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !!success}
                     className="flex items-center gap-2 px-6 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     {isSubmitting ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+                      <div role="status" aria-label="Submitting testimonial" className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
                     ) : (
                       <>
                         <Send size={18} />
@@ -364,6 +379,6 @@ export const AddTestimonialDialog = ({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>, document.body
   );
 };

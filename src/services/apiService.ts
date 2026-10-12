@@ -1,28 +1,33 @@
-import axios from "axios";
+import { cached, invalidatePublicCache } from "./public-cache";
+import { isProject, isTechnology, isTestimonial, validateList } from "./validation";
+import { api, ApiError } from "./http";
+import { API_BASE_URL } from "@/config/environment";
 import type { Project, Testimonial, Technology } from "@/types/data-types";
 
-const API_BASE_URL = "https://portfolio-back-r1hd.onrender.com";
+
 
 // ==================== PROJECTS API ====================
 
-export const getProjects = async (): Promise<Project[]> => {
-  const response = await axios.get<Project[]>(
+export const getProjects = async (): Promise<Project[]> => cached("getProjects", async () => {
+  const response = await api.get<Project[]>(
     `${API_BASE_URL}/api/Projects/GetAll`,
   );
-  return response.data;
-};
+  return validateList<Project>(response.data, isProject);
+});
 
 export const getProjectById = async (id: string): Promise<Project> => {
-  const response = await axios.get<Project>(
-    `${API_BASE_URL}/api/Projects/GetById/${id}`,
+  const response = await api.get<Project>(
+    `${API_BASE_URL}/api/Projects/GetById/${encodeURIComponent(id)}`,
   );
+  if (!isProject(response.data)) throw new ApiError("The project response is invalid.");
   return response.data;
 };
 
 export const getProjectsByTechnology = async (
   technologyIds: string[],
 ): Promise<Project[]> => {
-  const response = await axios.post<Project[]>(
+  invalidatePublicCache();
+  const response = await api.post<Project[]>(
     `${API_BASE_URL}/api/Projects/GetByTechnology`,
     technologyIds,
   );
@@ -30,14 +35,10 @@ export const getProjectsByTechnology = async (
 };
 
 export const createProject = async (formData: FormData): Promise<Project> => {
-  const response = await axios.post<Project>(
+  invalidatePublicCache();
+  const response = await api.post<Project>(
     `${API_BASE_URL}/api/Projects/Create`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
   return response.data;
 };
@@ -46,11 +47,9 @@ export const updateProject = async (
   id: string,
   formData: FormData,
 ): Promise<Project> => {
-  // Note: Backend expects [FromForm] for multipart/form-data
-  // If backend uses [FromBody], axios will automatically remove Content-Type header
-  // but FormData with file uploads requires multipart/form-data
-  const response = await axios.patch<Project>(
-    `${API_BASE_URL}/api/Projects/Update/${id}`,
+  invalidatePublicCache();
+  const response = await api.patch<Project>(
+    `${API_BASE_URL}/api/Projects/Update/${encodeURIComponent(id)}`,
     formData,
   );
   return response.data;
@@ -58,22 +57,23 @@ export const updateProject = async (
 
 export const deleteProject = async (ids: string | string[]): Promise<void> => {
   const idArray = Array.isArray(ids) ? ids : [ids];
-  const queryParams = idArray.map((id) => `ids=${id}`).join("&");
-  await axios.delete(`${API_BASE_URL}/api/Projects/Delete/Soft?${queryParams}`);
+  const queryParams = idArray.map((id) => `ids=${encodeURIComponent(id)}`).join("&");
+  invalidatePublicCache();
+  await api.delete(`${API_BASE_URL}/api/Projects/Delete/Soft?${queryParams}`);
 };
 
 // ==================== TECHNOLOGIES API ====================
 
-export const getTechnologies = async (): Promise<Technology[]> => {
-  const response = await axios.get<Technology[]>(
+export const getTechnologies = async (): Promise<Technology[]> => cached("getTechnologies", async () => {
+  const response = await api.get<Technology[]>(
     `${API_BASE_URL}/api/Technologies/GetAll`,
   );
-  return response.data;
-};
+  return validateList<Technology>(response.data, isTechnology);
+});
 
 export const getTechnologyById = async (id: string): Promise<Technology> => {
-  const response = await axios.get<Technology>(
-    `${API_BASE_URL}/api/Technologies/GetById/${id}`,
+  const response = await api.get<Technology>(
+    `${API_BASE_URL}/api/Technologies/GetById/${encodeURIComponent(id)}`,
   );
   return response.data;
 };
@@ -84,7 +84,8 @@ export const createTechnology = async (
     "id" | "createdTime" | "updatedTime" | "isDeleted"
   >,
 ): Promise<Technology> => {
-  const response = await axios.post<Technology>(
+  invalidatePublicCache();
+  const response = await api.post<Technology>(
     `${API_BASE_URL}/api/Technologies/Create`,
     technology,
   );
@@ -96,7 +97,8 @@ export const createTechnologies = async (
     Omit<Technology, "id" | "createdTime" | "updatedTime" | "isDeleted">
   >,
 ): Promise<Technology[]> => {
-  const response = await axios.post<Technology[]>(
+  invalidatePublicCache();
+  const response = await api.post<Technology[]>(
     `${API_BASE_URL}/api/Technologies/CreateRange`,
     technologies,
   );
@@ -110,40 +112,42 @@ export const updateTechnology = async (
     "id" | "createdTime" | "updatedTime" | "isDeleted"
   >,
 ): Promise<Technology> => {
-  const response = await axios.patch<Technology>(
-    `${API_BASE_URL}/api/Technologies/Update/${id}`,
+  invalidatePublicCache();
+  const response = await api.patch<Technology>(
+    `${API_BASE_URL}/api/Technologies/Update/${encodeURIComponent(id)}`,
     technology,
   );
   return response.data;
 };
 
 export const deleteTechnology = async (ids: string[]): Promise<void> => {
-  const queryParams = ids.map((id) => `ids=${id}`).join("&");
-  await axios.delete(
+  const queryParams = ids.map((id) => `ids=${encodeURIComponent(id)}`).join("&");
+  invalidatePublicCache();
+  await api.delete(
     `${API_BASE_URL}/api/Technologies/Delete/Soft?${queryParams}`,
   );
 };
 
 // ==================== TESTIMONIALS API ====================
 
-export const getApprovedTestimonials = async (): Promise<Testimonial[]> => {
-  const response = await axios.get<Testimonial[]>(
+export const getApprovedTestimonials = async (): Promise<Testimonial[]> => cached("getApprovedTestimonials", async () => {
+  const response = await api.get<Testimonial[]>(
     `${API_BASE_URL}/api/Testimonials/GetApproved`,
   );
-  return response.data;
-};
+  return validateList<Testimonial>(response.data, isTestimonial);
+});
 
 export const getAllTestimonials = async (): Promise<Testimonial[]> => {
-  const response = await axios.get<Testimonial[]>(
+  const response = await api.get<Testimonial[]>(
     `${API_BASE_URL}/api/Testimonials/GetAll`,
   );
-  return response.data;
+  return validateList<Testimonial>(response.data, isTestimonial);
 };
 
 export const getTestimonialsByStatus = async (
   status: "pending" | "approved" | "denied",
 ): Promise<Testimonial[]> => {
-  const response = await axios.get<Testimonial[]>(
+  const response = await api.get<Testimonial[]>(
     `${API_BASE_URL}/api/Testimonials/GetByStatus/${status}`,
   );
   return response.data;
@@ -152,32 +156,31 @@ export const getTestimonialsByStatus = async (
 export const createTestimonial = async (
   formData: FormData,
 ): Promise<Testimonial> => {
-  const response = await axios.post<Testimonial>(
+  invalidatePublicCache();
+  const response = await api.post<Testimonial>(
     `${API_BASE_URL}/api/Testimonials/Create`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    },
   );
   return response.data;
 };
 
 export const approveTestimonial = async (id: string): Promise<Testimonial> => {
-  const response = await axios.patch<Testimonial>(
-    `${API_BASE_URL}/api/Testimonials/Approve/${id}/approve`,
+  invalidatePublicCache();
+  const response = await api.patch<Testimonial>(
+    `${API_BASE_URL}/api/Testimonials/Approve/${encodeURIComponent(id)}/approve`,
   );
   return response.data;
 };
 
 export const denyTestimonial = async (id: string): Promise<Testimonial> => {
-  const response = await axios.patch<Testimonial>(
-    `${API_BASE_URL}/api/Testimonials/Deny/${id}/deny`,
+  invalidatePublicCache();
+  const response = await api.patch<Testimonial>(
+    `${API_BASE_URL}/api/Testimonials/Deny/${encodeURIComponent(id)}/deny`,
   );
   return response.data;
 };
 
 export const deleteTestimonial = async (id: string): Promise<void> => {
-  await axios.delete(`${API_BASE_URL}/api/Testimonials/Delete/${id}`);
+  invalidatePublicCache();
+  await api.delete(`${API_BASE_URL}/api/Testimonials/Delete/${encodeURIComponent(id)}`);
 };

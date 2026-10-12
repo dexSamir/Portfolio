@@ -20,26 +20,13 @@ export const Skeleton = ({
         height,
         width,
         borderRadius,
+        maxWidth: "100%",
       }}
     />
   );
 };
 
 export const PageSkeleton = ({ children }: { children: ReactNode }) => {
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading) {
-    return <PageSkeletonContent />;
-  }
-
   return <>{children}</>;
 };
 

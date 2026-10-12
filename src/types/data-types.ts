@@ -30,7 +30,7 @@ export interface Testimonial {
   status: "pending" | "approved" | "denied" | number;
 }
 
-export interface PendingTestimonial extends Testimonial {}
+export type PendingTestimonial = Testimonial;
 
 export const mapTestimonialStatus = (
   status: number | string,

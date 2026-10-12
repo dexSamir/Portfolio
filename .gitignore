@@ -32,3 +32,8 @@ dist-ssr
 # Local 
 src/config.local.ts
 
+
+# Generated test output
+/test-results/
+/playwright-report/
+*.tsbuildinfo

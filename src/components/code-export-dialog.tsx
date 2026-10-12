@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useModalAccessibility } from "@/hooks/use-modal-accessibility";
+import { useState, useEffect, useRef } from "react";
 import { Copy, Check, Code, X } from "lucide-react";
 
 interface CodeExportDialogProps {
@@ -18,6 +19,9 @@ export const CodeExportDialog = ({
     "projects"
   );
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useModalAccessibility(isOpen, dialogRef, onClose);
 
   useEffect(() => {
     if (copied) {
@@ -28,23 +32,23 @@ export const CodeExportDialog = ({
 
   if (!isOpen) return null;
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const codeToCopy =
       activeTab === "projects" ? projectsCode : testimonialsCode;
-    navigator.clipboard.writeText(codeToCopy);
-    setCopied(true);
+    try { await navigator.clipboard.writeText(codeToCopy); setCopied(true); setCopyError(""); } catch { setCopyError("Clipboard access is unavailable. Select and copy the code below."); }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-      <div className="w-full max-w-4xl bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="export-title" className="w-full max-w-4xl bg-gray-900 rounded-lg shadow-lg overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-gray-800">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+          <h2 id="export-title" className="text-xl font-semibold flex items-center gap-2">
             <Code size={20} className="text-primary" />
             TypeScript Data File
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close code export"
             className="p-1 rounded-full hover:bg-gray-800 transition-colors"
           >
             <X size={20} />
@@ -75,6 +79,7 @@ export const CodeExportDialog = ({
         </div>
 
         <div className="p-4">
+          {copyError && <p role="alert" className="text-red-300">{copyError}</p>}
           <div className="flex justify-between items-center mb-2">
             <p className="text-sm text-gray-400">
               You can copy this code and{" "}
@@ -102,10 +107,7 @@ export const CodeExportDialog = ({
 
           <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
             <p className="text-yellow-300 text-sm">
-              <strong>Note:</strong> This approach stores the data directly in
-              TypeScript files. To make changes permanent, you need to manually
-              add this code to the relevant files. When the application
-              restarts, the data from these files will be used.
+              <strong>Note:</strong> This is a code export only. It does not update the portfolio API or publish any data.
             </p>
           </div>
         </div>
@@ -113,6 +115,7 @@ export const CodeExportDialog = ({
         <div className="flex justify-end p-4 border-t border-gray-800">
           <button
             onClick={onClose}
+            aria-label="Close code export"
             className="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors"
           >
             Close

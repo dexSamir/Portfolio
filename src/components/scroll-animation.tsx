@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { motion, useInView, useAnimation } from "framer-motion";
+import { motion, useInView, useAnimation, useReducedMotion } from "framer-motion";
 
 type FadeDirections = "up" | "down" | "left" | "right" | "none";
 
@@ -37,6 +37,7 @@ export const ScrollAnimation = ({
   className = "",
   once = true,
 }: ScrollAnimationProps) => {
+  const reducedMotion = useReducedMotion();
   const controls = useAnimation();
   const ref = useRef(null);
   const inView = useInView(ref, { amount: threshold, once });
@@ -49,13 +50,15 @@ export const ScrollAnimation = ({
     }
   }, [controls, inView, once]);
 
+  if (reducedMotion) return <div className={className}>{children}</div>;
+
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
-      animate={controls}
+      initial={reducedMotion ? false : "hidden"}
+      animate={reducedMotion ? "visible" : controls}
       variants={getVariants(direction)}
-      transition={{ duration, delay, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: reducedMotion ? 0 : duration, delay: reducedMotion ? 0 : delay, ease: [0.25, 0.1, 0.25, 1] }}
       className={className}
     >
       {children}
@@ -74,9 +77,10 @@ export const StaggerContainer = ({
   staggerDelay?: number;
   className?: string;
 }) => {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial="hidden"
+      initial={reducedMotion ? false : "hidden"}
       whileInView="visible"
       viewport={{ once: true, margin: "-100px" }}
       className={className}

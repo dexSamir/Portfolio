@@ -25,16 +25,12 @@ export default function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const message = `Name: ${formData.name}%0AEmail: ${formData.email}%0ASubject: ${formData.subject}%0AMessage: ${formData.message}`;
+    const message = `Name: ${formData.name}
+Email: ${formData.email}
+Subject: ${formData.subject}
+Message: ${formData.message}`;
+    window.open(`https://wa.me/994506229328?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
 
-    window.open(`https://wa.me/994506229328?text=${message}`, "_blank");
-
-    setFormData({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
   };
 
   return (
@@ -67,7 +63,7 @@ export default function ContactPage() {
                       <h3 className="text-xl font-semibold mb-2">Phone</h3>
                       <a
                         href="tel:+994506229328"
-                        className="text-gray-300 hover:text-primary transition-colors hover-element"
+                        className="break-all text-gray-300 hover:text-primary transition-colors hover-element"
                       >
                         +994 50 622 93 28
                       </a>
@@ -84,7 +80,7 @@ export default function ContactPage() {
                       <h3 className="text-xl font-semibold mb-2">Email</h3>
                       <a
                         href="mailto:hebibovsamir26@gmail.com"
-                        className="text-gray-300 hover:text-primary transition-colors hover-element"
+                        className="break-all text-gray-300 hover:text-primary transition-colors hover-element"
                       >
                         hebibovsamir26@gmail.com
                       </a>

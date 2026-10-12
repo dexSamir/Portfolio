@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { safeExternalUrl } from "@/lib/safe-url";
+import { errorMessage } from "@/services/http";
+import { invalidatePublicCache } from "@/services/public-cache";
 import { motion } from "framer-motion";
 import { Github, ExternalLink } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
@@ -12,24 +14,26 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
 
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
     const fetchData = async () => {
       try {
         const projectsData = await getProjects();
-        setProjects(projectsData);
-        setFilteredProjects(projectsData);
+        if (active) setProjects(projectsData);
       } catch (err) {
-        console.error("Failed to fetch projects:", err);
-        setError("Failed to load projects. Please try again later.");
+        if (active) setError(errorMessage(err));
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+    return () => { active = false; };
+  }, [attempt]);
 
   if (loading) {
     return <ProjectsPageSkeleton />;
@@ -40,7 +44,8 @@ export default function ProjectsPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center text-red-400">
           <h2 className="text-2xl font-bold mb-4">Error Loading Projects</h2>
-          <p>{error}</p>
+          <p role="alert">{error}</p>
+          <button className="mt-4 text-primary" onClick={() => { invalidatePublicCache(); setAttempt(n => n + 1); }}>Try again</button>
         </div>
       </div>
     );
@@ -66,7 +71,7 @@ export default function ProjectsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredProjects.map((project, index) => (
+              {projects.map((project, index) => (
                 <motion.div
                   key={project.id}
                   className="glass-card rounded-xl overflow-hidden shadow-lg hover:shadow-primary/30 transition-all duration-300 border border-primary/10 hover:border-primary/30"
@@ -77,6 +82,8 @@ export default function ProjectsPage() {
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img
+                      loading={index < 3 ? "eager" : "lazy"}
+                      decoding="async"
                       src={
                         getProjectImageUrl(project.imageUrl) ||
                         "/placeholder.svg"
@@ -84,7 +91,8 @@ export default function ProjectsPage() {
                       alt={project.title}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src =
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src =
                           "/placeholder.svg?height=192&width=384";
                       }}
                     />
@@ -108,27 +116,27 @@ export default function ProjectsPage() {
                       ))}
                     </div>
                     <div className="flex gap-4">
-                      {project.githubUrl && (
-                        <Link
-                          to={project.githubUrl}
+                      {safeExternalUrl(project.githubUrl) && (
+                        <a
+                          href={safeExternalUrl(project.githubUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors"
                         >
                           <Github size={18} />
                           <span>GitHub</span>
-                        </Link>
+                        </a>
                       )}
-                      {project.liveUrl && (
-                        <Link
-                          to={project.liveUrl}
+                      {safeExternalUrl(project.liveUrl) && (
+                        <a
+                          href={safeExternalUrl(project.liveUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-2 text-gray-400 hover:text-primary transition-colors"
                         >
                           <ExternalLink size={18} />
                           <span>Live Demo</span>
-                        </Link>
+                        </a>
                       )}
                     </div>
                   </div>

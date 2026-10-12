@@ -72,7 +72,7 @@
 }
 
 .hover-element {
-  cursor: none;
+  cursor: pointer;
   position: relative;
   z-index: 10;
   transition: all 0.3s ease;
@@ -83,7 +83,7 @@
 }
 
 .button-like {
-  cursor: none;
+  cursor: pointer;
 }
 
 @media (max-width: 1023px) {
@@ -131,18 +131,6 @@
     rgba(255, 255, 255, 0.9),
     rgba(220, 255, 220, 0.7)
   );
-}
-
-.gradient-bg::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("/noise.png");
-  opacity: 0.05;
-  pointer-events: none;
 }
 
 .text-glow {
@@ -241,3 +229,17 @@
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+.skip-link { position:fixed; top:8px; left:8px; z-index:1000; transform:translateY(-150%); padding:12px 20px; background:#000; color:#fff; border:2px solid hsl(var(--primary)); }
+.skip-link:focus { transform:translateY(0); }
+input, textarea { max-width:100%; }
+button:disabled { cursor:not-allowed; opacity:.6; }
+/* Keep the existing light-theme surfaces readable, including legacy utility colors. */
+.light body { color:hsl(var(--foreground)); background:#fff; }
+.light .text-gray-300, .light .text-gray-400, .light .text-gray-500 { color:#4b5563; }
+.light .bg-gray-900 .text-gray-300, .light .bg-gray-900 .text-gray-400 { color:#d1d5db; }

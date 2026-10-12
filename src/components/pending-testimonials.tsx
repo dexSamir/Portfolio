@@ -122,12 +122,14 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <button
                       className="text-green-400 hover:text-green-300 mr-3"
+                      aria-label={`Approve ${testimonial.fullName}`}
                       onClick={() => handleApproveTestimonial(testimonial.id)}
                     >
                       <CheckCircle size={18} />
                     </button>
                     <button
                       className="text-red-400 hover:text-red-300"
+                      aria-label={`Delete ${testimonial.fullName}`}
                       onClick={() =>
                         handleDeleteClick(
                           testimonial.id,
@@ -209,13 +211,15 @@ export const PendingTestimonials: React.FC<PendingTestimonialsProps> = ({
                 <div className="flex">
                   <button
                     className="text-green-400 hover:text-green-300 mr-3 p-1"
-                    onClick={() => handleApproveTestimonial(testimonial.id)}
+                    aria-label={`Approve ${testimonial.fullName}`}
+                      onClick={() => handleApproveTestimonial(testimonial.id)}
                   >
                     <CheckCircle size={18} />
                   </button>
                   <button
                     className="text-red-400 hover:text-red-300 p-1"
-                    onClick={() =>
+                    aria-label={`Delete ${testimonial.fullName}`}
+                      onClick={() =>
                       handleDeleteClick(
                         testimonial.id,
                         "pendingTestimonial",

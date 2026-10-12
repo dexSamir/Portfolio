@@ -12,7 +12,7 @@ export function InitialsAvatar({
   imageUrl,
   size = "md",
 }: InitialsAvatarProps) {
-  const [imageError, setImageError] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
 
   const sizeClasses = {
     sm: "w-10 h-10 text-xs",
@@ -27,13 +27,15 @@ export function InitialsAvatar({
   };
 
   const handleImageError = () => {
-    setImageError(true);
+    setFailedUrl(imageUrl || null);
   };
 
-  if (imageUrl && !imageError) {
+  if (imageUrl && failedUrl !== imageUrl) {
     return (
       <img
-        src={imageUrl || "/placeholder.svg"}
+        src={imageUrl}
+        loading="lazy"
+        decoding="async"
         alt={name}
         className={`${sizeClasses[size]} rounded-full object-cover ${borderClasses[size]} border-primary/50`}
         onError={handleImageError}

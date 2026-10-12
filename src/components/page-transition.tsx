@@ -1,5 +1,5 @@
 import { type ReactNode } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 
 interface PageTransitionProps {
   children: ReactNode
@@ -37,6 +37,8 @@ const stagger = {
 }
 
 export const PageTransition = ({ children, className }: PageTransitionProps) => {
+  const reducedMotion = useReducedMotion();
+  if (reducedMotion) return <div className={className}>{children}</div>;
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -49,7 +51,6 @@ export const PageTransition = ({ children, className }: PageTransitionProps) => 
         <motion.div
           variants={fadeInUp}
           style={{
-            willChange: "transform, opacity",
             backfaceVisibility: "hidden",
             WebkitFontSmoothing: "subpixel-antialiased",
           }}
@@ -104,7 +105,7 @@ export const SlideIn = ({ children, delay = 0, direction = "right", className }:
         ease: [0.22, 1, 0.36, 1],
       }}
       style={{
-        willChange: "transform, opacity",
+
       }}
     >
       {children}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { errorMessage } from "@/services/http";
 import { motion } from "framer-motion";
 import { Star, Plus } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
@@ -22,26 +23,17 @@ export default function TestimonialsPage() {
     [key: string]: boolean;
   }>({});
 
-  const fetchTestimonials = async () => {
-    try {
-      const data = await getApprovedTestimonials();
-      setTestimonials(data);
-    } catch (err) {
-      console.error("Failed to fetch testimonials:", err);
-      setError("Failed to load testimonials. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    fetchTestimonials();
-  }, []);
-
-  const handleTestimonialAdded = () => {
-    setIsAddTestimonialDialogOpen(false);
-    fetchTestimonials();
-  };
+    let active = true;
+    setLoading(true);
+    setError(null);
+    getApprovedTestimonials().then(data => { if (active) setTestimonials(data); })
+      .catch(error => { if (active) setError(errorMessage(error)); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [attempt]);
+  const handleTestimonialAdded = () => setIsAddTestimonialDialogOpen(false);
 
   const toggleShowFullContent = (id: string) => {
     setShowFullContent((prev) => ({
@@ -62,7 +54,7 @@ export default function TestimonialsPage() {
             <h2 className="text-2xl font-bold mb-4">
               Error Loading Testimonials
             </h2>
-            <p>{error}</p>
+            <p role="alert">{error}</p><button className="mt-4 text-primary" onClick={() => setAttempt(n => n + 1)}>Try again</button>
           </div>
         </div>
       </PageTransition>
@@ -123,7 +115,7 @@ export default function TestimonialsPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex mb-4">
+                  <div className="flex mb-4" role="img" aria-label={`${testimonial.rating} out of 5 stars`}>
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
@@ -144,6 +136,7 @@ export default function TestimonialsPage() {
                   </p>
                   {testimonial.message.length > MAX_CONTENT_LENGTH && (
                     <button
+                      aria-expanded={!!showFullContent[testimonial.id]}
                       onClick={() => toggleShowFullContent(testimonial.id)}
                       className="text-primary hover:underline mt-2 self-start text-sm"
                     >

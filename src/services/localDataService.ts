@@ -19,7 +19,7 @@ export const getProjects = async (): Promise<Project[]> => {
     return await apiGetProjects();
   } catch (error) {
     console.error("Error getting projects from API:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -28,7 +28,7 @@ export const getTestimonials = async (): Promise<Testimonial[]> => {
     return await getAllTestimonials();
   } catch (error) {
     console.error("Error getting testimonials from API:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -37,7 +37,7 @@ export const getApprovedTestimonialsOnly = async (): Promise<Testimonial[]> => {
     return await getApprovedTestimonials();
   } catch (error) {
     console.error("Error getting approved testimonials from API:", error);
-    return [];
+    throw error;
   }
 };
 
@@ -46,7 +46,7 @@ export const getPendingTestimonials = async (): Promise<Testimonial[]> => {
     return await getTestimonialsByStatus("pending");
   } catch (error) {
     console.error("Error getting pending testimonials from API:", error);
-    return [];
+    throw error;
   }
 };
 

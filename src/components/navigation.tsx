@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useModalAccessibility } from "@/hooks/use-modal-accessibility";
 import { cn } from "../lib/utils";
 
 const navItems = [
@@ -20,23 +21,17 @@ export const Navigation = () => {
     setIsOpen(false);
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  const menuRef = useRef<HTMLElement>(null);
+  useModalAccessibility(isOpen, menuRef, () => setIsOpen(false));
 
   return (
-    <header className="fixed w-full z-50">
+    <header ref={menuRef} className="fixed w-full z-50">
       <div className="container mx-auto px-4 py-4 flex justify-end">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="hover-element relative z-50 bg-black/50 backdrop-blur-sm p-3 rounded-full hover:bg-primary/20 transition-all duration-300"
+          aria-expanded={isOpen}
+          aria-controls="main-navigation"
           aria-label={isOpen ? "Close menu" : "Open menu"}
         >
           <AnimatePresence mode="wait">
@@ -75,6 +70,8 @@ export const Navigation = () => {
             className="fixed inset-0 bg-black/95 backdrop-blur-md z-40 flex items-center justify-center"
           >
             <motion.nav
+              id="main-navigation"
+              aria-label="Main navigation"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
@@ -92,6 +89,8 @@ export const Navigation = () => {
                   >
                     <Link
                       to={item.path}
+                      aria-current={location.pathname === item.path ? "page" : undefined}
+                      onClick={() => setIsOpen(false)}
                       className={cn(
                         "text-3xl font-medium hover-element relative inline-block transition-all duration-300 hover:text-primary hover:scale-110",
                         location.pathname === item.path ? "text-primary text-glow" : "text-white"

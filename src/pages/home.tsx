@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { FloatingParticles } from "@/components/floating-particles";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, Phone, Mail } from "lucide-react";
@@ -26,30 +27,7 @@ export default function HomePage() {
           className="gradient-bg min-h-screen relative overflow-hidden"
           ref={containerRef}
         >
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(20)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full bg-primary/20"
-                style={{
-                  width: Math.random() * 10 + 5,
-                  height: Math.random() * 10 + 5,
-                  x: Math.random() * 100 + "%",
-                  y: Math.random() * 100 + "%",
-                }}
-                animate={{
-                  y: [0, Math.random() * -100 - 50],
-                  opacity: [0, 0.5, 0],
-                }}
-                transition={{
-                  duration: Math.random() * 10 + 20,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "linear",
-                  delay: Math.random() * 5,
-                }}
-              />
-            ))}
-          </div>
+          <FloatingParticles />
 
           <motion.div>
             <div className="container mx-auto px-4 pt-24 pb-24 sm:pb-16">
@@ -65,7 +43,10 @@ export default function HomePage() {
                       transition={{ duration: 0.3 }}
                     >
                       <img
-                        src="./imgs/me.png"
+                        src="/imgs/me.webp"
+                        width={450}
+                        height={800}
+                        fetchPriority="high"
                         alt="Samir Habibov"
                         className="w-full h-full object-cover"
                       />
@@ -141,7 +122,7 @@ export default function HomePage() {
                   </motion.h1>
 
                   <motion.h2
-                    className="text-xl sm:text-2xl md:text-3xl mb-4 sm:mb-8"
+                    className="text-xl sm:text-2xl md:text-3xl mb-4 sm:mb-8 min-h-[2.4em] sm:min-h-[1.2em]"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.6 }}
@@ -184,12 +165,13 @@ export default function HomePage() {
                       View Projects
                     </Link>
 
-                    <Link
-                      to="/resume"
+                    <a
+                      href="/imgs/resume/Samir_Habibov_CV.pdf"
+                      download="Samir_Habibov_CV.pdf"
                       className="hover-element button-like border border-primary text-primary px-4 sm:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.2)]"
                     >
                       Download CV
-                    </Link>
+                    </a>
                   </motion.div>
                 </ScrollAnimation>
               </div>

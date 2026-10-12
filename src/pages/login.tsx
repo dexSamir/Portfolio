@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, User, Eye, EyeOff } from "lucide-react";
+import { errorMessage } from "@/services/http";
 import { authService } from "@/services/authService";
 
 export default function LoginPage() {
@@ -25,6 +26,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError("");
 
@@ -32,8 +34,7 @@ export default function LoginPage() {
       await authService.login(credentials.email, credentials.password);
       navigate("/admin");
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Invalid email or password. Please try again.");
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -66,6 +67,7 @@ export default function LoginPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
+            role="alert"
             className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6"
           >
             {error}
@@ -85,6 +87,7 @@ export default function LoginPage() {
                 type="email"
                 id="email"
                 name="email"
+                autoComplete="username"
                 value={credentials.email}
                 onChange={handleChange}
                 required
@@ -106,6 +109,7 @@ export default function LoginPage() {
                 type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
+                autoComplete="current-password"
                 value={credentials.password}
                 onChange={handleChange}
                 required
@@ -115,6 +119,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -140,7 +146,7 @@ export default function LoginPage() {
             whileTap={{ scale: 0.98 }}
           >
             {loading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
+              <div role="status" aria-label="Logging in" className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
             ) : (
               "Login"
             )}

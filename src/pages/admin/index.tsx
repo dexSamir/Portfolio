@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import { useModalAccessibility } from "@/hooks/use-modal-accessibility";
+import { errorMessage } from "@/services/http";
+import { isProject, isTestimonial, validateList } from "@/services/validation";
+import { safeExternalUrl } from "@/lib/safe-url";
+import { invalidatePublicCache } from "@/services/public-cache";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -56,6 +61,10 @@ export default function AdminDashboard() {
     PendingTestimonial[]
   >([]);
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const actionLock = useRef(false);
+  const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
@@ -68,9 +77,12 @@ export default function AdminDashboard() {
   } | null>(null);
 
   const navigate = useNavigate();
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  useModalAccessibility(sidebarOpen, sidebarRef, () => setSidebarOpen(false));
 
   const fetchData = async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [projectsData, allTestimonialsData] = await Promise.all([
         getProjects(),
@@ -78,15 +90,12 @@ export default function AdminDashboard() {
       ]);
 
       setProjects(projectsData);
+      setPreviewMode(false);
 
       const mappedTestimonials = allTestimonialsData.map((t) => ({
         ...t,
         status: mapTestimonialStatus(t.status),
       }));
-
-      console.log("[v0] All testimonials:", allTestimonialsData);
-      console.log("[v0] Mapped testimonials:", mappedTestimonials);
-      console.log(mappedTestimonials.filter((t) => t.status === "approved"));
 
       setApprovedTestimonials(
         mappedTestimonials.filter((t) => t.status === "approved"),
@@ -99,10 +108,10 @@ export default function AdminDashboard() {
 
       const userStr = localStorage.getItem("user");
       if (userStr) {
-        setUser(JSON.parse(userStr));
+        try { const parsed = JSON.parse(userStr); if (typeof parsed.name === "string") setUser({name:parsed.name,role:"admin"}); } catch { /* Ignore invalid local display preferences. */ }
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      setLoadError(errorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -128,12 +137,14 @@ export default function AdminDashboard() {
     type: "project" | "testimonial" | "pendingTestimonial",
     name: string,
   ) => {
+    if (previewMode) { alert("Reload live data before making changes."); return; }
     setItemToDelete({ id, type, name });
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
+    if (!itemToDelete || actionLock.current) return;
+    actionLock.current = true; setBusy(true);
 
     try {
       if (itemToDelete.type === "project") {
@@ -156,39 +167,43 @@ export default function AdminDashboard() {
           ),
         );
       }
-      fetchData();
     } catch (error) {
       console.error(`Error deleting ${itemToDelete.type}:`, error);
       alert(`Failed to delete ${itemToDelete.type}. Please try again.`);
     } finally {
+      actionLock.current = false; setBusy(false);
       setDeleteDialogOpen(false);
       setItemToDelete(null);
     }
   };
 
   const handleApproveTestimonial = async (id: string) => {
+    if (actionLock.current || previewMode) return;
+    actionLock.current = true; setBusy(true);
     try {
       await approveTestimonial(id);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Error approving testimonial:", error);
       alert("Failed to approve testimonial. Please try again.");
-    }
+    } finally { actionLock.current = false; setBusy(false); }
   };
 
   const handleRejectTestimonial = async (id: string) => {
+    if (actionLock.current || previewMode) return;
+    actionLock.current = true; setBusy(true);
     try {
       await denyTestimonial(id);
-      fetchData();
+      await fetchData();
     } catch (error) {
       console.error("Error denying testimonial:", error);
       alert("Failed to deny testimonial. Please try again.");
-    }
+    } finally { actionLock.current = false; setBusy(false); }
   };
 
   const handleEditProject = (project: Project) => {
-    localStorage.setItem("editingProject", JSON.stringify(project));
-    navigate(`/admin/create?type=project&edit=true`);
+    if (previewMode) { alert("Reload live data before editing."); return; }
+    navigate(`/admin/create?type=project&edit=true&id=${encodeURIComponent(project.id)}`);
   };
 
   const handleLogout = () => {
@@ -199,7 +214,7 @@ export default function AdminDashboard() {
   const handleExportData = () => {
     const data = {
       projects,
-      testimonials: approvedTestimonials,
+      testimonials: [...approvedTestimonials, ...pendingTestimonials],
     };
 
     const jsonData = JSON.stringify(data, null, 2);
@@ -211,7 +226,7 @@ export default function AdminDashboard() {
     downloadLink.download = "portfolio-data.json";
     downloadLink.click();
 
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,25 +236,20 @@ export default function AdminDashboard() {
     setImportError(null);
     setImportSuccess(null);
 
+    if (file.size > 2 * 1024 * 1024) { setImportError("Choose a JSON file smaller than 2MB."); return; }
     const reader = new FileReader();
 
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
 
-        if (!data.projects || !data.testimonials) {
-          setImportError("Invalid JSON structure.");
-          return;
-        }
-
-        localStorage.setItem("projects", JSON.stringify(data.projects));
-        localStorage.setItem("testimonials", JSON.stringify(data.testimonials));
-
-        setImportSuccess("Data imported successfully! Reloading...");
-
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        const importedProjects = validateList<Project>(data.projects, isProject);
+        const importedTestimonials = validateList<Testimonial>(data.testimonials, isTestimonial);
+        setPreviewMode(true);
+        setProjects(importedProjects);
+        setApprovedTestimonials(importedTestimonials.filter(t => mapTestimonialStatus(t.status) === "approved"));
+        setPendingTestimonials(importedTestimonials.filter(t => mapTestimonialStatus(t.status) === "pending"));
+        setImportSuccess("Backup preview loaded for this session only. The server has not been changed. Reload to return to live data.");
       } catch (error) {
         console.error("Error parsing JSON:", error);
         setImportError("JSON parsing error. Please check the file format.");
@@ -257,6 +267,8 @@ export default function AdminDashboard() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  if (loadError) return <AdminGuard><div role="alert" className="gradient-bg min-h-screen p-8 pt-24"><h1 className="text-2xl mb-4">Unable to load dashboard</h1><p>{loadError}</p><button className="mt-4 text-primary" onClick={() => { invalidatePublicCache(); fetchData(); }}>Try again</button></div></AdminGuard>;
+
   if (loading) {
     return (
       <AdminGuard>
@@ -269,8 +281,10 @@ export default function AdminDashboard() {
 
   return (
     <AdminGuard>
-      <div className="min-h-screen flex relative">
+      <div className="min-h-screen flex relative" aria-busy={busy}>
         <button
+          aria-label={sidebarOpen ? "Close admin menu" : "Open admin menu"}
+          aria-expanded={sidebarOpen}
           onClick={toggleSidebar}
           className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-black/50 text-white"
         >
@@ -376,7 +390,7 @@ export default function AdminDashboard() {
         </div>
 
         {sidebarOpen && (
-          <div className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md">
+          <div ref={sidebarRef} role="dialog" aria-modal="true" aria-label="Admin navigation" className="lg:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-md">
             <div className="p-6 pt-16">
               <h1 className="text-2xl font-bold text-primary">Admin Panel</h1>
               <div className="mt-6 flex items-center gap-3">
@@ -489,7 +503,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        <div className="w-full lg:ml-64 p-4 lg:p-8 gradient-bg">
+        <div className="w-full min-w-0 lg:ml-64 p-4 lg:p-8 gradient-bg">
+          {previewMode && <div role="status" className="p-4 mt-12 lg:mt-0 mb-4 border border-yellow-500 text-yellow-200">Local backup preview. Server data is unchanged. Editing and moderation are unavailable in preview. <button className="underline" onClick={() => { invalidatePublicCache(); fetchData(); }}>Reload live data</button></div>}
           {activeTab === "dashboard" && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -660,7 +675,7 @@ export default function AdminDashboard() {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
                                 {project.imageUrl ? (
-                                  <img
+                                  <img loading="lazy" decoding="async"
                                     src={
                                       getProjectImageUrl(project.imageUrl) ||
                                       "/placeholder.svg"
@@ -668,7 +683,8 @@ export default function AdminDashboard() {
                                     alt={project.title}
                                     className="w-10 h-10 rounded object-cover mr-3"
                                     onError={(e) => {
-                                      (e.target as HTMLImageElement).src =
+                                      e.currentTarget.onerror = null;
+                                      e.currentTarget.src =
                                         "/placeholder.svg";
                                     }}
                                   />
@@ -711,9 +727,9 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex gap-2">
-                                {project.githubUrl && (
+                                {safeExternalUrl(project.githubUrl) && (
                                   <a
-                                    href={project.githubUrl}
+                                    href={safeExternalUrl(project.githubUrl)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-gray-400 hover:text-primary"
@@ -721,9 +737,9 @@ export default function AdminDashboard() {
                                     GitHub
                                   </a>
                                 )}
-                                {project.liveUrl && (
+                                {safeExternalUrl(project.liveUrl) && (
                                   <a
-                                    href={project.liveUrl}
+                                    href={safeExternalUrl(project.liveUrl)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-gray-400 hover:text-primary"
@@ -736,12 +752,12 @@ export default function AdminDashboard() {
                             <td className="px-6 py-4 whitespace-nowrap text-right">
                               <button
                                 className="text-blue-400 hover:text-blue-300 mr-3"
-                                onClick={() => handleEditProject(project)}
+                                aria-label="Edit project" onClick={() => handleEditProject(project)}
                               >
                                 <Edit size={18} />
                               </button>
                               <button
-                                className="text-red-400 hover:text-red-300"
+                                aria-label="Delete item" className="text-red-400 hover:text-red-300"
                                 onClick={() =>
                                   handleDeleteClick(
                                     project.id,
@@ -767,7 +783,7 @@ export default function AdminDashboard() {
                       >
                         <div className="flex items-center mb-3">
                           {project.imageUrl ? (
-                            <img
+                            <img loading="lazy" decoding="async"
                               src={
                                 getProjectImageUrl(project.imageUrl) ||
                                 "/placeholder.svg"
@@ -775,7 +791,8 @@ export default function AdminDashboard() {
                               alt={project.title}
                               className="w-12 h-12 rounded object-cover mr-3"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src =
+                                e.currentTarget.onerror = null;
+                                      e.currentTarget.src =
                                   "/placeholder.svg";
                               }}
                             />
@@ -813,9 +830,9 @@ export default function AdminDashboard() {
 
                         <div className="flex justify-between items-center">
                           <div className="flex gap-2">
-                            {project.githubUrl && (
+                            {safeExternalUrl(project.githubUrl) && (
                               <a
-                                href={project.githubUrl}
+                                href={safeExternalUrl(project.githubUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-400 hover:text-primary text-sm flex items-center"
@@ -824,9 +841,9 @@ export default function AdminDashboard() {
                                 GitHub
                               </a>
                             )}
-                            {project.liveUrl && (
+                            {safeExternalUrl(project.liveUrl) && (
                               <a
-                                href={project.liveUrl}
+                                href={safeExternalUrl(project.liveUrl)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-gray-400 hover:text-primary text-sm flex items-center"
@@ -839,12 +856,12 @@ export default function AdminDashboard() {
                           <div className="flex">
                             <button
                               className="text-blue-400 hover:text-blue-300 mr-3 p-1"
-                              onClick={() => handleEditProject(project)}
+                              aria-label="Edit project" onClick={() => handleEditProject(project)}
                             >
                               <Edit size={18} />
                             </button>
                             <button
-                              className="text-red-400 hover:text-red-300 p-1"
+                              aria-label="Delete item" className="text-red-400 hover:text-red-300 p-1"
                               onClick={() =>
                                 handleDeleteClick(
                                   project.id,
@@ -994,7 +1011,7 @@ export default function AdminDashboard() {
                                 <X size={18} />
                               </button>
                               <button
-                                className="text-red-400 hover:text-red-300"
+                                aria-label="Delete item" className="text-red-400 hover:text-red-300"
                                 onClick={() =>
                                   handleDeleteClick(
                                     testimonial.id,
@@ -1066,11 +1083,11 @@ export default function AdminDashboard() {
                             ))}
                           </div>
                           <div className="flex">
-                            <button className="text-blue-400 hover:text-blue-300 mr-3 p-1 opacity-50 cursor-not-allowed">
+                            <button disabled className="text-blue-400 hover:text-blue-300 mr-3 p-1 opacity-50 cursor-not-allowed" aria-label="Testimonial editing unavailable">
                               <Edit size={18} />
                             </button>
                             <button
-                              className="text-red-400 hover:text-red-300 p-1"
+                              aria-label="Delete item" className="text-red-400 hover:text-red-300 p-1"
                               onClick={() =>
                                 handleDeleteClick(
                                   testimonial.id,
@@ -1122,8 +1139,8 @@ export default function AdminDashboard() {
               </h2>
 
               <div className="glass-card rounded-xl p-6 mb-6">
-                <h3 className="text-xl font-semibold mb-4">Profile Settings</h3>
-                <form className="space-y-4">
+                <h3 className="text-xl font-semibold mb-4">Profile Settings</h3><p className="text-gray-300 mb-4">Profile changes are not connected to the server yet.</p>
+                <form onSubmit={(event) => { event.preventDefault(); alert("This setting requires a backend endpoint that is not available in the current API. No changes were saved."); }} className="space-y-4">
                   <div>
                     <label
                       htmlFor="name"
@@ -1149,7 +1166,7 @@ export default function AdminDashboard() {
                       type="email"
                       id="email"
                       className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                      defaultValue="admin@example.com"
+                      placeholder="Your account email"
                     />
                   </div>
 
@@ -1169,7 +1186,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <button
-                    type="submit"
+                    type="submit" disabled title="Requires a backend endpoint"
                     className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     Save Changes
@@ -1178,8 +1195,8 @@ export default function AdminDashboard() {
               </div>
 
               <div className="glass-card rounded-xl p-6">
-                <h3 className="text-xl font-semibold mb-4">Change Password</h3>
-                <form className="space-y-4">
+                <h3 className="text-xl font-semibold mb-4">Change Password</h3><p className="text-gray-300 mb-4">Password changes require backend support and are currently unavailable.</p>
+                <form onSubmit={(event) => { event.preventDefault(); alert("This setting requires a backend endpoint that is not available in the current API. No changes were saved."); }} className="space-y-4">
                   <div>
                     <label
                       htmlFor="current-password"
@@ -1188,7 +1205,7 @@ export default function AdminDashboard() {
                       Current Password
                     </label>
                     <input
-                      type="password"
+                      type="password" autoComplete="new-password"
                       id="current-password"
                       className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     />
@@ -1203,7 +1220,7 @@ export default function AdminDashboard() {
                         New Password
                       </label>
                       <input
-                        type="password"
+                        type="password" autoComplete="new-password"
                         id="new-password"
                         className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       />
@@ -1216,7 +1233,7 @@ export default function AdminDashboard() {
                         Confirm New Password
                       </label>
                       <input
-                        type="password"
+                        type="password" autoComplete="new-password"
                         id="confirm-password"
                         className="w-full px-4 py-2 bg-black/30 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       />
@@ -1224,7 +1241,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <button
-                    type="submit"
+                    type="submit" disabled title="Requires a backend endpoint"
                     className="px-4 py-2 bg-primary text-black rounded-lg hover:bg-primary/90 transition-colors"
                   >
                     Update Password
@@ -1237,7 +1254,7 @@ export default function AdminDashboard() {
 
         <DeleteConfirmDialog
           isOpen={deleteDialogOpen}
-          onClose={() => setDeleteDialogOpen(false)}
+          onClose={() => { if (!busy) setDeleteDialogOpen(false); }}
           onConfirm={handleConfirmDelete}
           itemName={itemToDelete?.name || ""}
           itemType={itemToDelete?.type || "item"}

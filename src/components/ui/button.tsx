@@ -44,5 +44,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
+// This variant utility is intentionally shared with button consumers.
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }
 

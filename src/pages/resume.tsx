@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { GraduationCap, Code, Languages, FileDown } from "lucide-react";
 import { PageTransition } from "@/components/page-transition";
@@ -6,23 +5,6 @@ import { ScrollAnimation } from "@/components/scroll-animation";
 import { PageSkeleton } from "@/components/loading-skeleton";
 
 export default function ResumePage() {
-  const [isDownloading, setIsDownloading] = useState(false);
-
-  const handleDownload = () => {
-    setIsDownloading(true);
-
-    setTimeout(() => {
-      const link = document.createElement("a");
-      link.href = "/imgs/resume/Samir_Habibov_CV.pdf";
-      link.download = "samir-habibov-resume.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      setIsDownloading(false);
-    }, 1500);
-  };
-
   return (
     <PageSkeleton>
       <PageTransition>
@@ -41,36 +23,16 @@ export default function ResumePage() {
                   </p>
                 </ScrollAnimation>
               </div>
-              <motion.button
-                onClick={handleDownload}
-                disabled={isDownloading}
-                className="hover-element button-like mt-6 md:mt-0 flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-full font-medium transition-all duration-500 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,255,0,0.3)]"
+              <motion.a
+                href="/imgs/resume/Samir_Habibov_CV.pdf"
+                download="Samir_Habibov_CV.pdf"
+                className="hover-element button-like mt-6 md:mt-0 flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-full font-medium"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                animate={
-                  isDownloading
-                    ? {
-                        y: [0, -5, 0],
-                        transition: {
-                          repeat: Number.POSITIVE_INFINITY,
-                          duration: 0.5,
-                        },
-                      }
-                    : {}
-                }
               >
-                {isDownloading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-black"></div>
-                    <span>Downloading...</span>
-                  </>
-                ) : (
-                  <>
-                    <FileDown size={20} />
-                    <span>Download CV</span>
-                  </>
-                )}
-              </motion.button>
+                <FileDown size={20} aria-hidden="true" />
+                <span>Download CV</span>
+              </motion.a>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
